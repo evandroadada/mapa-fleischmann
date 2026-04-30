@@ -279,12 +279,12 @@ header{
       <div class="card-sub">hab · 55 cidades</div>
     </div>
     <div class="card" id="card-fleisch-rabele"     style="--accent:#1a6fa8" data-chave="fleisch-rabele">
-      <div class="card-label">Rabele após parceria</div>
+      <div class="card-label">Rabele área total</div>
       <div class="card-value">4.169.093</div>
       <div class="card-sub">hab · 165 cidades</div>
     </div>
     <div class="card" id="card-coferpan-apos"      style="--accent:#757575" data-chave="coferpan-apos">
-      <div class="card-label">Coferpan após parceria</div>
+      <div class="card-label">Sobra de área Coferpan</div>
       <div class="card-value">2.736.688</div>
       <div class="card-sub">hab · 160 cidades</div>
     </div>
@@ -1250,8 +1250,8 @@ function imprimirMapa() {
     'fermisul': 'Fermisul',
     'rabele-fleisch-hoje': 'Rabele Fleischmann hoje',
     'rabele': 'Expansão proposta Rabele',
-    'fleisch-rabele': 'População Rabele Total',
-    'coferpan-apos': 'Coferpan após parceria'
+    'fleisch-rabele': 'Rabele área total',
+    'coferpan-apos': 'Sobra de área Coferpan'
   };
   const nome = nomes[travadoTerr] || 'Mapa de Territórios';
   document.getElementById('print-title').textContent = 'Divisão Territorial Fleischmann Paraná — ' + nome;
@@ -1438,7 +1438,7 @@ function abrirModal(chave) {
   } else if(chave === 'rabele') {
     cidades = munsDom(); nome='Expansão proposta Rabele'; cor='#3498DB';
   } else if(chave === 'coferpan-apos') {
-    cidades = munsDom(); nome='Coferpan após parceria'; cor='#757575';
+    cidades = munsDom(); nome='Sobra de área Coferpan'; cor='#757575';
   } else if(chave === 'rabele-fleisch-hoje') {
     cidades = allMuns.filter(el=>!el.classList.contains('mun-apagado'))
       .map(el=>({nome:el.getAttribute('data-cidade'),pop:popCidades[el.getAttribute('data-cidade')]||0}))
@@ -1448,7 +1448,7 @@ function abrirModal(chave) {
     cidades = allMuns.filter(el=>!el.classList.contains('mun-apagado'))
       .map(el=>({nome:el.getAttribute('data-cidade'),pop:popCidades[el.getAttribute('data-cidade')]||0}))
       .filter(c=>c.nome);
-    nome='População Rabele Total'; cor='#1a6fa8';
+    nome='Rabele área total'; cor='#1a6fa8';
   }
 
   if(!cidades.length) return;
