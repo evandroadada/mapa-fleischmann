@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Divisão Territorial Fleischmann — Paraná</title>
+<title>Mapa de Territórios Rabele</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Barlow+Condensed:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -89,7 +89,7 @@ header{
 /* CARDS */
 .cards-grid{
   display:grid;
-  grid-template-columns:repeat(6,1fr);
+  grid-template-columns:repeat(auto-fill,minmax(175px,1fr));
   gap:7px;
 }
 .card{
@@ -236,13 +236,126 @@ header{
 }
 
 @media print {
-  header, footer, #btn-print, #btn-excel, .theme-btn, #modal-regiao, #legenda-territorios { display: none !important; }
-  #print-title { display: block !important; position: fixed; top: 10px; left: 0; right: 0; text-align: center; font-family: sans-serif; font-size: 16px; font-weight: 700; color: #1a1a2e; z-index: 100000; }
-  #print-footer { display: block !important; position: fixed; bottom: 8px; left: 0; right: 0; text-align: center; font-size: 10px; color: #aaa; z-index: 100000; }
+  header, footer, #btn-print, #btn-excel, .theme-btn, #modal-regiao, #legenda-territorios, #btn-seletor, #seletor-overlay, #menu-impressao { display: none !important; }
+  #print-title { display: block !important; position: fixed; top: 14px; left: 0; right: 0; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 21px; font-weight: 700; letter-spacing: .5px; color: #14406b; z-index: 100000; }
+  #print-footer { display: block !important; position: fixed; bottom: 7px; left: 0; right: 0; text-align: center; font-size: 8.5px; color: #c0c4ca; z-index: 100000; font-family: 'Inter', sans-serif; }
   #mapa-wrapper { position: fixed !important; top: 30px !important; left: 0 !important; right: 0 !important; bottom: 25px !important; height: auto !important; }
   body { background: white !important; }
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  /* Quando há legenda custom, mapa reduz e legenda aparece abaixo */
+  body.print-com-legenda #mapa-wrapper { bottom: 290px !important; }
+  body.print-com-legenda #print-legenda {
+    display: block !important; position: fixed; bottom: 18px; left: 0; right: 0;
+    z-index: 100000; background: #ffffff; padding-top: 6px;
+  }
+  #print-legenda .pl-wrap {
+    max-width: 660px; margin: 0 auto; font-family: 'Inter', sans-serif;
+    background: #ffffff; border-radius: 8px;
+  }
+  #print-legenda .pl-table {
+    width: 100%; border-collapse: collapse; margin-bottom: 8px;
+  }
+  #print-legenda .pl-table thead th {
+    font-size: 8px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .6px; color: #9aa3ad; padding: 0 6px 4px; border-bottom: 1.5px solid #e8eaed;
+  }
+  #print-legenda .pl-table td {
+    padding: 3.5px 6px; border-bottom: 1px solid #f1f3f5; font-size: 10.5px; vertical-align: middle;
+  }
+  #print-legenda .pl-c-cor { width: 16px; }
+  #print-legenda .pl-dot {
+    display: inline-block; width: 9px; height: 9px; border-radius: 50%; vertical-align: middle;
+  }
+  #print-legenda .pl-c-nome { font-weight: 600; color: #1f2430; }
+  #print-legenda .pl-c-pop { text-align: right; color: #6b7280; font-variant-numeric: tabular-nums; }
+  #print-legenda .pl-c-meta { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+  #print-legenda .pl-totais {
+    max-width: 660px; margin: 0 auto;
+  }
+  #print-legenda .pl-tr {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 10px; padding: 2.5px 6px; color: #4b5563;
+  }
+  #print-legenda .pl-tr span:first-child { font-weight: 500; display: flex; align-items: center; }
+  #print-legenda .pl-bullet {
+    display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px;
+  }
+  #print-legenda .pl-tv { font-variant-numeric: tabular-nums; color: #374151; }
+  #print-legenda .pl-tv b { color: #1f2430; }
+  #print-legenda .pl-tr-geral {
+    border-top: 1.5px solid #e8eaed; margin-top: 3px; padding-top: 6px;
+    font-size: 12.5px; font-weight: 700; color: #14406b;
+  }
+  #print-legenda .pl-tr-geral .pl-tv, #print-legenda .pl-tr-geral .pl-tv b { color: #14406b; }
+  /* Sintético: ocultar labels de vendedor no mapa e usar menos espaço */
+  body.print-sintetico .vendedor-label { display: none !important; }
+  /* Em visão custom (com labels de vendedor), esconder nomes das cidades de fundo */
+  body.print-ocultar-cidades #labels { display: none !important; }
+  /* Anular hover/destaque de cidade na impressão */
+  .mun:hover { filter: none !important; stroke-width: 0.5 !important; stroke: inherit !important; }
+  body.print-legenda-curta #mapa-wrapper { bottom: 130px !important; }
+  body.print-legenda-curta #print-legenda .pl-totais { padding-top: 4px; }
 }
+
+/* PAINEL SELETOR */
+#seletor-overlay{display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.62);backdrop-filter:blur(3px);}
+#seletor-overlay.aberto{display:flex;align-items:stretch;}
+#seletor-panel{width:100%;display:flex;flex-direction:column;background:#0d1117;animation:slUp .2s ease;}
+@keyframes slUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:none;}}
+#seletor-hdr{display:flex;align-items:center;gap:8px;padding:9px 14px;background:#161b22;border-bottom:1px solid #30363d;flex-shrink:0;flex-wrap:wrap;}
+#seletor-hdr-title{font-family:"Barlow Condensed",sans-serif;font-size:14px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#9B59B6;white-space:nowrap;margin-right:4px;}
+#seletor-tabs-bar{display:flex;align-items:center;gap:0;background:#161b22;border-bottom:1px solid #30363d;flex-shrink:0;overflow-x:auto;padding:0 8px;}
+#seletor-tabs-bar::-webkit-scrollbar{height:3px;}
+#seletor-tabs-bar::-webkit-scrollbar-thumb{background:#30363d;border-radius:2px;}
+.sel-tab{display:flex;align-items:center;gap:5px;padding:7px 13px;font-size:12px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;color:#8b949e;white-space:nowrap;transition:color .15s,border-color .15s;user-select:none;flex-shrink:0;font-family:"Inter",sans-serif;}
+.sel-tab:hover{color:#e6edf3;}
+.sel-tab.ativa{color:#9B59B6;border-bottom-color:#9B59B6;}
+#seletor-main{display:flex;flex:1;overflow:hidden;min-height:0;}
+#seletor-mapwrap{flex:1;overflow:hidden;min-width:0;position:relative;}
+#seletor-svg{position:absolute;top:0;left:0;width:100%;height:100%;}
+#seletor-svg polygon{stroke-width:0.5;cursor:pointer;transition:filter .08s;}
+#seletor-svg polygon:hover{filter:brightness(1.35);}
+#seletor-svg text{pointer-events:none;user-select:none;}
+#seletor-side{width:280px;flex-shrink:0;background:#161b22;border-left:1px solid #30363d;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+#seletor-srch{padding:7px 9px;border-bottom:1px solid #30363d;}
+#seletor-srch input{width:100%;background:#0d1117;border:1px solid #30363d;color:#e6edf3;padding:5px 9px;border-radius:6px;font-size:12px;font-family:"Inter",sans-serif;}
+#seletor-srch input::placeholder{color:#8b949e;}
+#seletor-rlist{flex:1;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:5px;}
+.sel-rcard{background:#0d1117;border:1px solid #30363d;border-radius:7px;padding:8px 10px;border-left-width:3px;}
+.sel-rcard.editing{box-shadow:0 0 0 1.5px #f0a500;border-color:#f0a500;}
+.sel-rch{display:flex;align-items:center;gap:5px;margin-bottom:2px;}
+.sel-rdot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.sel-rnm{font-size:12px;font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#e6edf3;font-family:"Inter",sans-serif;}
+.sel-rnm.ed{color:#f0a500;}
+.sel-rbts{display:flex;gap:2px;}
+.sel-rbt{border:none;padding:2px 6px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;font-family:"Inter",sans-serif;}
+.sel-rpop{font-family:"Barlow Condensed",sans-serif;font-size:15px;font-weight:700;color:#e6edf3;}
+.sel-rsub{font-size:11px;color:#8b949e;}
+.sel-empty{color:#8b949e;font-size:12px;text-align:center;padding:18px;line-height:1.6;font-family:"Inter",sans-serif;}
+#seletor-botpanel{padding:9px 12px;border-top:2px solid #30363d;background:#161b22;flex-shrink:0;transition:border-color .2s;}
+#seletor-botpanel.em{border-top-color:#f0a500;background:rgba(240,165,0,.04);}
+#seletor-bph{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+#seletor-bptitle{font-size:10px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:#9B59B6;font-family:"Inter",sans-serif;}
+#seletor-bptitle.em{color:#f0a500;}
+#seletor-bpflds{display:flex;gap:5px;align-items:center;margin-bottom:7px;}
+#seletor-bpflds input[type=text]{flex:1;background:#0d1117;border:1px solid #30363d;color:#e6edf3;padding:5px 8px;border-radius:6px;font-size:12px;font-family:"Inter",sans-serif;}
+#seletor-bpflds input[type=text]::placeholder{color:#8b949e;}
+#seletor-bpflds input[type=color]{width:28px;height:28px;border:1px solid #30363d;border-radius:5px;cursor:pointer;padding:2px;background:none;}
+#seletor-palette{display:flex;gap:3px;margin-bottom:7px;flex-wrap:wrap;}
+.sel-pcol{width:15px;height:15px;border-radius:50%;cursor:pointer;flex-shrink:0;border:2px solid transparent;transition:border-color .12s,transform .1s;}
+.sel-pcol:hover{transform:scale(1.2);}
+.sel-pcol.ativo{border-color:#e6edf3;}
+#seletor-curpop{font-family:"Barlow Condensed",sans-serif;font-size:18px;font-weight:800;color:#e6edf3;}
+#seletor-curcid{font-size:11px;color:#8b949e;margin-top:1px;font-family:"Inter",sans-serif;}
+#seletor-curact{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap;}
+#seletor-totbox{padding:6px 12px;border-top:1px solid #30363d;background:#0d1117;font-size:11px;color:#8b949e;flex-shrink:0;font-family:"Inter",sans-serif;}
+#seletor-totbox strong{font-family:"Barlow Condensed",sans-serif;font-size:12px;color:#e6edf3;display:block;margin-top:1px;}
+.sel-btn{background:#9B59B6;color:#fff;border:none;padding:5px 11px;border-radius:6px;font-size:12px;font-weight:600;font-family:"Inter",sans-serif;cursor:pointer;white-space:nowrap;}
+.sel-btn:hover{filter:brightness(1.15);}
+.sel-btn.sec{background:#21262d;color:#e6edf3;border:1px solid #30363d;}
+.sel-btn.ok{background:#2ea043;}
+#seletor-tip{position:fixed;background:#161b22;border:1px solid #30363d;color:#e6edf3;padding:4px 9px;border-radius:6px;font-size:12px;pointer-events:none;z-index:20000;display:none;box-shadow:0 3px 12px rgba(0,0,0,.4);font-family:"Inter",sans-serif;}
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -250,10 +363,12 @@ header{
 
 <header>
   <div class="header-top">
-    <div class="header-title">Divisão Territorial <span>Fleischmann</span> Paraná</div>
+    <div class="header-title">Mapa de Territórios <span>Rabele</span></div>
     <div style="display:flex;align-items:center;gap:8px;">
     <button id="btn-excel" onclick="exportarExcel()" style="display:none;background:rgba(39,174,96,0.15);border:1px solid rgba(39,174,96,0.35);border-radius:20px;padding:5px 14px;cursor:pointer;color:rgba(255,255,255,0.8);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;align-items:center;gap:5px;">📊 Exportar</button>
-    <button id="btn-print" onclick="imprimirMapa()" style="display:none;background:rgba(52,152,219,0.15);border:1px solid rgba(52,152,219,0.35);border-radius:20px;padding:5px 14px;cursor:pointer;color:rgba(255,255,255,0.8);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;align-items:center;gap:5px;">🖨️ Imprimir</button>
+    <button id="btn-print" onclick="abrirMenuImpressao()" style="display:none;background:rgba(52,152,219,0.15);border:1px solid rgba(52,152,219,0.35);border-radius:20px;padding:5px 14px;cursor:pointer;color:rgba(255,255,255,0.8);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;align-items:center;gap:5px;">🖨️ Imprimir</button>
+    <button id="btn-nova-visao" onclick="pedirSenhaENovaVisao()" style="background:rgba(46,160,67,0.18);border:1px solid rgba(46,160,67,0.45);border-radius:20px;padding:5px 14px;cursor:pointer;color:rgba(255,255,255,0.85);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;display:flex;align-items:center;gap:5px;transition:all .2s;" onmouseover="this.style.background='rgba(46,160,67,0.35)'" onmouseout="this.style.background='rgba(46,160,67,0.18)'">＋ Nova Visão</button>
+    <button id="btn-seletor" onclick="pedirSenhaEAbrir()" style="background:rgba(155,89,182,0.18);border:1px solid rgba(155,89,182,0.45);border-radius:20px;padding:5px 14px;cursor:pointer;color:rgba(255,255,255,0.85);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;display:flex;align-items:center;gap:5px;transition:all .2s;" onmouseover="this.style.background='rgba(155,89,182,0.35)'" onmouseout="this.style.background='rgba(155,89,182,0.18)'">✏️ Editar Regiões</button>
     <button class="theme-btn" id="theme-toggle" onclick="toggleTheme()">🌙 Escuro</button>
   </div>
   </div>
@@ -292,6 +407,30 @@ header{
 </header>
 
 <div id="print-title" style="display:none;"></div>
+<div id="print-legenda" style="display:none;"></div>
+
+<!-- MENU DE ESCOLHA DE IMPRESSÃO -->
+<div id="menu-impressao" style="display:none;position:fixed;inset:0;z-index:15000;background:rgba(0,0,0,0.55);backdrop-filter:blur(3px);align-items:center;justify-content:center;" onclick="if(event.target===this)fecharMenuImpressao()">
+  <div style="background:#fff;border-radius:16px;padding:26px 28px;max-width:440px;width:90%;box-shadow:0 12px 48px rgba(0,0,0,.35);font-family:'Inter',sans-serif;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:#14406b;margin-bottom:4px;letter-spacing:.3px;">Escolha o tipo de relatório</div>
+    <div style="font-size:12.5px;color:#888;margin-bottom:18px;">Selecione como deseja imprimir esta visão</div>
+    <button onclick="imprimirMapa('analitico')" style="width:100%;text-align:left;background:#f7f9fb;border:1.5px solid #e3e8ee;border-radius:12px;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:all .15s;display:flex;align-items:flex-start;gap:12px;" onmouseover="this.style.borderColor='#3498db';this.style.background='#eef6fc'" onmouseout="this.style.borderColor='#e3e8ee';this.style.background='#f7f9fb'">
+      <span style="font-size:22px;line-height:1;">📊</span>
+      <span>
+        <span style="display:block;font-weight:700;font-size:14px;color:#1f2430;margin-bottom:2px;">Analítico</span>
+        <span style="display:block;font-size:11.5px;color:#777;line-height:1.4;">Mapa com nomes dos vendedores, tabela detalhada por região e totais gerais.</span>
+      </span>
+    </button>
+    <button onclick="imprimirMapa('sintetico')" style="width:100%;text-align:left;background:#f7f9fb;border:1.5px solid #e3e8ee;border-radius:12px;padding:14px 16px;margin-bottom:6px;cursor:pointer;transition:all .15s;display:flex;align-items:flex-start;gap:12px;" onmouseover="this.style.borderColor='#27ae60';this.style.background='#eefaf2'" onmouseout="this.style.borderColor='#e3e8ee';this.style.background='#f7f9fb'">
+      <span style="font-size:22px;line-height:1;">📄</span>
+      <span>
+        <span style="display:block;font-weight:700;font-size:14px;color:#1f2430;margin-bottom:2px;">Sintético</span>
+        <span style="display:block;font-size:11.5px;color:#777;line-height:1.4;">Mapa limpo, apenas com as cores das regiões e os totais consolidados.</span>
+      </span>
+    </button>
+    <button onclick="fecharMenuImpressao()" style="width:100%;background:none;border:none;color:#999;font-size:12px;padding:8px;cursor:pointer;margin-top:4px;font-family:'Inter',sans-serif;">Cancelar</button>
+  </div>
+</div>
 <div id="print-footer" style="display:none;">© 2026 Rabele Alimentos. All rights reserved.</div>
 <div id="mapa-wrapper">
   <div id="mapa-container"></div>
@@ -762,10 +901,13 @@ const svgTerritorios = `<svg id="mapa-parana" viewBox="0 0 1000 636" xmlns="http
 }
 
 @media print {
-  header, footer, #btn-print, #btn-excel, .theme-btn, #modal-regiao, #legenda-territorios { display: none !important; }
-  #print-title { display: block !important; position: fixed; top: 10px; left: 0; right: 0; text-align: center; font-family: sans-serif; font-size: 16px; font-weight: 700; color: #1a1a2e; z-index: 100000; }
-  #print-footer { display: block !important; position: fixed; bottom: 8px; left: 0; right: 0; text-align: center; font-size: 10px; color: #aaa; z-index: 100000; }
-  #mapa-wrapper { position: fixed !important; top: 30px !important; left: 0 !important; right: 0 !important; bottom: 25px !important; height: auto !important; }
+  header, footer, #btn-print, #btn-excel, .theme-btn, #modal-regiao, #legenda-territorios, #menu-impressao { display: none !important; }
+  #print-title { display: block !important; position: fixed; top: 14px; left: 0; right: 0; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 21px; font-weight: 700; letter-spacing: .5px; color: #14406b; z-index: 100000; }
+  #print-footer { display: block !important; position: fixed; bottom: 7px; left: 0; right: 0; text-align: center; font-size: 8.5px; color: #c0c4ca; z-index: 100000; font-family: 'Inter', sans-serif; }
+  #mapa-wrapper { position: fixed !important; top: 42px !important; left: 0 !important; right: 0 !important; bottom: 25px !important; height: auto !important; }
+  body.print-com-legenda #mapa-wrapper { bottom: 290px !important; }
+  body.print-legenda-curta #mapa-wrapper { bottom: 130px !important; }
+  body.print-sintetico .vendedor-label { display: none !important; }
   body { background: white !important; }
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 }
@@ -1244,7 +1386,23 @@ const tip = document.getElementById('mapa-tooltip');
 let allMuns = [];
 
 
-function imprimirMapa() {
+function abrirMenuImpressao() {
+  // Visões não-custom: imprime direto (não tem analítico/sintético)
+  if (!travadoTerr || !travadoTerr.startsWith('custom_')) {
+    imprimirMapa('analitico');
+    return;
+  }
+  document.getElementById('menu-impressao').style.display = 'flex';
+}
+
+function fecharMenuImpressao() {
+  document.getElementById('menu-impressao').style.display = 'none';
+}
+
+function imprimirMapa(modo) {
+  modo = modo || 'analitico';
+  fecharMenuImpressao();
+
   const nomes = {
     'coferpan': 'Coferpan Total Hoje',
     'fermisul': 'Fermisul',
@@ -1253,12 +1411,196 @@ function imprimirMapa() {
     'fleisch-rabele': 'Rabele área total',
     'coferpan-apos': 'Sobra de área Coferpan'
   };
-  const nome = nomes[travadoTerr] || 'Mapa de Territórios';
-  document.getElementById('print-title').textContent = 'Divisão Territorial Fleischmann Paraná — ' + nome;
-  window.print();
+  const nome = (travadoTerr && travadoTerr.startsWith('custom_'))
+    ? (VISAO_NOME[travadoTerr] || 'Mapa de Territórios')
+    : (nomes[travadoTerr] || 'Mapa de Territórios');
+  const sufixo = (travadoTerr && travadoTerr.startsWith('custom_'))
+    ? (modo === 'sintetico' ? ' (Resumo)' : '') : '';
+  document.getElementById('print-title').textContent = nome + sufixo;
+
+  // Sintético: esconder labels de vendedor no mapa
+  if (modo === 'sintetico') {
+    document.body.classList.add('print-sintetico');
+  } else {
+    document.body.classList.remove('print-sintetico');
+  }
+
+  // Visão custom: ocultar nomes das cidades de fundo na impressão (evita brigar com nomes de vendedor)
+  const ehCustom = travadoTerr && travadoTerr.startsWith('custom_');
+  if (ehCustom) {
+    document.body.classList.add('print-ocultar-cidades');
+  } else {
+    document.body.classList.remove('print-ocultar-cidades');
+  }
+
+  // Gerar legenda conforme o modo
+  gerarLegendaPrint(modo);
+
+  // Limpar qualquer estado de hover/destaque preso e reaplicar cores da visão
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  if (travadoTerr) destacarPorChave(travadoTerr);
+
+  // Pequeno atraso garante que o reset de cores foi aplicado antes do snapshot de impressão
+  setTimeout(() => {
+    window.print();
+    setTimeout(() => {
+      document.body.classList.remove('print-sintetico');
+      document.body.classList.remove('print-ocultar-cidades');
+    }, 500);
+  }, 60);
+}
+
+function gerarLegendaPrint(modo) {
+  modo = modo || 'analitico';
+  const box = document.getElementById('print-legenda');
+  document.body.classList.remove('print-com-legenda');
+  box.innerHTML = '';
+
+  if (!travadoTerr || !travadoTerr.startsWith('custom_')) return;
+  const cv = window._customVisoes && window._customVisoes[travadoTerr];
+  if (!cv || !cv.regioes || !cv.regioes.length) return;
+
+  // Ordenar: vendedores primeiro (por meta desc), depois não atendidas
+  const regioes = [...cv.regioes].sort((a,b) => {
+    if ((a.tipo==='naoatendida') !== (b.tipo==='naoatendida'))
+      return a.tipo==='naoatendida' ? 1 : -1;
+    return (b.meta||0) - (a.meta||0);
+  });
+
+  // ── Tabela detalhada (só no analítico) ──
+  let tabelaHtml = '';
+  if (modo === 'analitico') {
+    const rows = regioes.map(r => {
+      const pop = [...r.cids].reduce((s,c) => s + (popCidades[c]||0), 0);
+      const ehNaoAtend = r.tipo === 'naoatendida';
+      const metaCor = ehNaoAtend ? '#b8860b' : '#1a7431';
+      return `
+        <tr>
+          <td class="pl-c-cor"><span class="pl-dot" style="background:${r.cor};"></span></td>
+          <td class="pl-c-nome">${r.nome}</td>
+          <td class="pl-c-pop">${pop.toLocaleString('pt-BR')} hab</td>
+          <td class="pl-c-meta" style="color:${metaCor};">${r.meta ? seletorMoedaStr(r.meta) : '—'}</td>
+        </tr>`;
+    }).join('');
+    tabelaHtml = `
+      <table class="pl-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th style="text-align:left;">Região / Vendedor</th>
+            <th style="text-align:right;">População</th>
+            <th style="text-align:right;">Meta / Potencial</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
+  // ── Totais (sempre) ──
+  let qtdVend = 0, popVend = 0, metaVend = 0;
+  let qtdPot = 0, popPot = 0, metaPot = 0;
+  cv.regioes.forEach(r => {
+    const pop = [...r.cids].reduce((s,c) => s + (popCidades[c]||0), 0);
+    if (r.tipo === 'naoatendida') { qtdPot++; popPot += pop; metaPot += (r.meta||0); }
+    else { qtdVend++; popVend += pop; metaVend += (r.meta||0); }
+  });
+  const popTotal = popVend + popPot;
+  const fatTotal = metaVend + metaPot;
+
+  box.innerHTML = `
+    <div class="pl-wrap${modo === 'sintetico' ? ' pl-sintetico' : ''}">
+      ${tabelaHtml}
+      <div class="pl-totais">
+        <div class="pl-tr">
+          <span><span class="pl-bullet" style="background:#1a7431;"></span>Áreas com vendedor</span>
+          <span class="pl-tv">${qtdVend} · ${popVend.toLocaleString('pt-BR')} hab · <b>${seletorMoedaStr(metaVend)}</b></span>
+        </div>
+        <div class="pl-tr">
+          <span><span class="pl-bullet" style="background:#b8860b;"></span>Áreas com potencial</span>
+          <span class="pl-tv">${qtdPot} · ${popPot.toLocaleString('pt-BR')} hab · <b>${seletorMoedaStr(metaPot)}</b></span>
+        </div>
+        <div class="pl-tr pl-tr-geral">
+          <span>Potencial total das áreas</span>
+          <span class="pl-tv">${popTotal.toLocaleString('pt-BR')} hab · <b>${seletorMoedaStr(fatTotal)}</b></span>
+        </div>
+      </div>
+    </div>`;
+  document.body.classList.add('print-com-legenda');
+  // Sintético usa menos espaço (só totais)
+  if (modo === 'sintetico') document.body.classList.add('print-legenda-curta');
+  else document.body.classList.remove('print-legenda-curta');
+}
+
+function exportarExcelCustom() {
+  const cv = window._customVisoes && window._customVisoes[travadoTerr];
+  if (!cv) return;
+  const nomeVisao = VISAO_NOME[travadoTerr] || 'Visão';
+
+  const wb = XLSX.utils.book_new();
+
+  // ── Aba 1: Resumo por região ──
+  const resumo = {};
+  resumo['A1'] = { v: 'Mapa de Territórios Rabele — ' + nomeVisao, t: 's' };
+  resumo['A2'] = { v: 'Fonte: Rabele Alimentos · Dados IBGE', t: 's' };
+  resumo['A4'] = { v: 'REGIÃO', t: 's' };
+  resumo['B4'] = { v: 'TIPO', t: 's' };
+  resumo['C4'] = { v: 'CIDADES', t: 's' };
+  resumo['D4'] = { v: 'POPULAÇÃO', t: 's' };
+  resumo['E4'] = { v: 'META/POTENCIAL (R$)', t: 's' };
+
+  let r = 5, totalPop = 0, totalMeta = 0;
+  cv.regioes.forEach(reg => {
+    const pop = [...reg.cids].reduce((s,c) => s + (popCidades[c]||0), 0);
+    const ehNaoAtend = reg.tipo === 'naoatendida';
+    resumo['A'+r] = { v: reg.nome, t: 's' };
+    resumo['B'+r] = { v: ehNaoAtend ? 'Não atendida' : 'Vendedor', t: 's' };
+    resumo['C'+r] = { v: reg.cids.size, t: 'n' };
+    resumo['D'+r] = { v: pop, t: 'n' };
+    resumo['E'+r] = { v: reg.meta || 0, t: 'n' };
+    totalPop += pop; totalMeta += (reg.meta || 0);
+    r++;
+  });
+  resumo['A'+r] = { v: 'TOTAL', t: 's' };
+  resumo['C'+r] = { v: cv.regioes.reduce((s,x)=>s+x.cids.size,0), t: 'n' };
+  resumo['D'+r] = { v: totalPop, t: 'n' };
+  resumo['E'+r] = { v: totalMeta, t: 'n' };
+
+  resumo['!ref'] = 'A1:E' + r;
+  resumo['!cols'] = [{wch:28},{wch:14},{wch:10},{wch:14},{wch:20}];
+  resumo['!merges'] = [{s:{r:0,c:0},e:{r:0,c:4}},{s:{r:1,c:0},e:{r:1,c:4}}];
+  XLSX.utils.book_append_sheet(wb, resumo, 'Resumo');
+
+  // ── Aba 2: Cidades detalhadas ──
+  const det = {};
+  det['A1'] = { v: 'REGIÃO', t: 's' };
+  det['B1'] = { v: 'CIDADE', t: 's' };
+  det['C1'] = { v: 'POPULAÇÃO', t: 's' };
+  let dr = 2;
+  cv.regioes.forEach(reg => {
+    [...reg.cids]
+      .map(c => ({ nome: c, pop: popCidades[c]||0 }))
+      .sort((a,b) => b.pop - a.pop)
+      .forEach(c => {
+        det['A'+dr] = { v: reg.nome, t: 's' };
+        det['B'+dr] = { v: c.nome.charAt(0)+c.nome.slice(1).toLowerCase(), t: 's' };
+        det['C'+dr] = { v: c.pop, t: 'n' };
+        dr++;
+      });
+  });
+  det['!ref'] = 'A1:C' + (dr-1);
+  det['!cols'] = [{wch:28},{wch:30},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, det, 'Cidades');
+
+  const fname = 'Mapa_Rabele_' + nomeVisao.replace(/[^a-zA-Z0-9]/g,'_') + '.xlsx';
+  XLSX.writeFile(wb, fname);
 }
 
 function exportarExcel() {
+  // Visão custom: exportar com regiões e meta/potencial
+  if (travadoTerr && travadoTerr.startsWith('custom_')) {
+    exportarExcelCustom();
+    return;
+  }
   const nomes = {
     'coferpan': 'Coferpan Total Hoje',
     'fermisul': 'Fermisul',
@@ -1286,7 +1628,7 @@ function exportarExcel() {
   const ws = {};
 
   // Título
-  ws['A1'] = { v: 'Divisão Territorial Fleischmann Paraná — ' + nome, t: 's' };
+  ws['A1'] = { v: 'Mapa de Territórios Rabele — ' + nome, t: 's' };
   ws['A2'] = { v: 'Fonte: Rabele Alimentos · Dados IBGE', t: 's' };
 
   // Cabeçalho
@@ -1354,9 +1696,18 @@ window.addEventListener('load', () => {
     el.addEventListener('click', (e) => {
       e.stopPropagation();
       if(!travadoTerr || el.classList.contains('mun-apagado')) return;
+      // Visão custom: abrir modal só da região (vendedor) que contém a cidade
+      if (travadoTerr.startsWith('custom_')) {
+        const cidade = el.getAttribute('data-cidade');
+        abrirModalRegiaoCustom(travadoTerr, cidade);
+        return;
+      }
       abrirModal(travadoTerr);
     });
   });
+
+  // Gerar favicon com contorno do Paraná
+  setTimeout(criarFaviconDoMapa, 300);
 
   // CARDS — hover e clique (SEM abrir modal)
   document.querySelectorAll('.card').forEach(card => {
@@ -1381,6 +1732,9 @@ window.addEventListener('load', () => {
     });
   });
 
+  // Restaurar visões custom (Supabase → fallback localStorage/fixas)
+  carregarVisoesLS();
+
 });
 
 document.addEventListener('keydown', e => {
@@ -1398,6 +1752,8 @@ function resetCores() {
     el.style.stroke = '';
     el.classList.remove('mun-apagado');
   });
+  // Remover labels de vendedor
+  document.querySelectorAll('.vendedor-label').forEach(e => e.remove());
 }
 
 function destacar(pred, corOverride) {
@@ -1416,15 +1772,179 @@ function destacar(pred, corOverride) {
 }
 
 function destacarPorChave(chave) {
+  if (chave && chave.startsWith('custom_') && window._customVisoes && window._customVisoes[chave]) {
+    destacarCustom(window._customVisoes[chave].regioes);
+    return;
+  }
   switch(chave) {
     case 'coferpan':           destacar((f,c) => (f==='#3498DB'||f==='#9E9E9E')&&!coferpanExcluir.has(c), '#9E9E9E'); break;
-    case 'fermisul':           destacar(f => f==='#85C1A0'); break;
+    case 'fermisul':           destacar((f,c) => f==='#85C1A0' && !(window._overrideFermisul&&window._overrideFermisul.rem.has(c))
+                                            || (window._overrideFermisul&&window._overrideFermisul.add.has(c)), '#85C1A0'); break;
     case 'rabele-fleisch-hoje':destacar((f,c) => cidadesRabeleFleischHoje.has(c), '#9B59B6'); break;
-    case 'rabele':             destacar(f => f==='#3498DB'); break;
+    case 'rabele':             destacar((f,c) => (f==='#3498DB' && !(window._overrideRabele&&window._overrideRabele.rem.has(c)))
+                                            || (window._overrideRabele&&window._overrideRabele.add.has(c)), '#3498DB'); break;
     case 'fleisch-rabele':     destacar((f,c) => f==='#3498DB'||cidadesFleischmannRabele.has(c), '#3498DB'); break;
-    case 'coferpan-apos':      destacar(f => f==='#9E9E9E'); break;
+    case 'coferpan-apos':      destacar((f,c) => f==='#9E9E9E' && !(window._overrideApos&&window._overrideApos.has(c))); break;
   }
 }
+
+function destacarCustom(regioes) {
+  // Mapa cidade → cor
+  const cidCor = new Map();
+  regioes.forEach(r => r.cids.forEach(c => cidCor.set(c, r.cor)));
+  allMuns.forEach(el => {
+    const c = el.getAttribute('data-cidade');
+    if (cidCor.has(c)) {
+      el.style.fill   = cidCor.get(c);
+      el.style.stroke = '';
+      el.classList.remove('mun-apagado');
+    } else {
+      el.style.fill   = '#f8fafc';
+      el.style.stroke = '#e2e8f0';
+      el.classList.add('mun-apagado');
+    }
+  });
+  // Renderizar labels dos vendedores no SVG
+  renderLabelsVendedor(regioes);
+}
+
+function renderLabelsVendedor(regioes) {
+  const svg = document.querySelector('#mapa-container svg');
+  if (!svg) return;
+
+  // Remover labels anteriores
+  svg.querySelectorAll('.vendedor-label').forEach(e => e.remove());
+
+  if (!regioes || regioes.length === 0) return;
+
+  const NS = 'http://www.w3.org/2000/svg';
+
+  regioes.forEach(reg => {
+    if (!reg.cids || !reg.cids.size) return;
+
+    // Posicionar o label no centroide da MAIOR cidade da região (mais estável e sempre dentro da área)
+    let maiorCidade = null, maiorPop = -1;
+    reg.cids.forEach(cidade => {
+      const pop = popCidades[cidade] || 0;
+      if (pop > maiorPop) { maiorPop = pop; maiorCidade = cidade; }
+    });
+    if (!maiorCidade) return;
+    const elMaior = allMuns.find(e => e.getAttribute('data-cidade') === maiorCidade);
+    if (!elMaior) return;
+    const ptsMaior = elMaior.getAttribute('points');
+    if (!ptsMaior) return;
+    const pairsMaior = ptsMaior.trim().split(/\s+/).map(p => p.split(',').map(Number));
+    if (!pairsMaior.length) return;
+    const lx = pairsMaior.reduce((s,p) => s + p[0], 0) / pairsMaior.length;
+    const ly = pairsMaior.reduce((s,p) => s + p[1], 0) / pairsMaior.length;
+
+    // ── Label de texto com brilho/contorno, sem caixa ──
+    const palavras = reg.nome.toUpperCase().split(' ');
+    const linhas = [];
+    let atual = '';
+    palavras.forEach(p => {
+      if ((atual + ' ' + p).trim().length <= 16) {
+        atual = (atual + ' ' + p).trim();
+      } else {
+        if (atual) linhas.push(atual);
+        atual = p;
+      }
+    });
+    if (atual) linhas.push(atual);
+    const nLinhas = linhas.length;
+    const temMeta = !!reg.meta;
+    const ehNaoAtend = reg.tipo === 'naoatendida';
+
+    // Cor do texto: usa a cor da região mas escurecida pra contraste
+    const hex = reg.cor.replace('#','');
+    const rr = parseInt(hex.substr(0,2),16);
+    const gg = parseInt(hex.substr(2,2),16);
+    const bb = parseInt(hex.substr(4,2),16);
+    const escurecer = (v) => Math.max(0, Math.round(v * 0.55));
+    const corTexto = `rgb(${escurecer(rr)},${escurecer(gg)},${escurecer(bb)})`;
+
+    const lineH = 5.5;
+    const nomeFontSize = 6.5;
+    const metaFontSize = 5;
+    const nomeStartY = ly - 1.5 - (nLinhas - 1) * lineH / 2 - (temMeta ? 1.5 : 0);
+
+    // Grupo do label (para hover)
+    const g = document.createElementNS(NS, 'g');
+    g.setAttribute('class', 'vendedor-label');
+    g.style.transition = 'transform 0.18s ease';
+    g.style.transformBox = 'fill-box';
+    g.style.transformOrigin = 'center';
+    g.style.cursor = 'default';
+    g.style.pointerEvents = 'none';
+
+    // Nome (com brilho branco via stroke largo)
+    const tNome = document.createElementNS(NS, 'text');
+    tNome.setAttribute('x', lx);
+    tNome.setAttribute('y', nomeStartY);
+    tNome.setAttribute('text-anchor', 'middle');
+    tNome.setAttribute('dominant-baseline', 'middle');
+    tNome.setAttribute('font-size', nomeFontSize);
+    tNome.setAttribute('font-weight', '800');
+    tNome.setAttribute('font-family', 'Barlow Condensed, Arial, sans-serif');
+    tNome.setAttribute('fill', corTexto);
+    tNome.setAttribute('stroke', '#ffffff');
+    tNome.setAttribute('stroke-width', '1.7');
+    tNome.setAttribute('paint-order', 'stroke');
+    tNome.setAttribute('stroke-linejoin', 'round');
+    tNome.setAttribute('letter-spacing', '0.2');
+    linhas.forEach((ln, idx) => {
+      const tspan = document.createElementNS(NS, 'tspan');
+      tspan.setAttribute('x', lx);
+      tspan.setAttribute('dy', idx === 0 ? 0 : lineH);
+      tspan.textContent = ln;
+      tNome.appendChild(tspan);
+    });
+    g.appendChild(tNome);
+
+    // Meta/Potencial
+    if (temMeta) {
+      const metaY = nomeStartY + (nLinhas - 1) * lineH + metaFontSize + 2.5;
+      const tMeta = document.createElementNS(NS, 'text');
+      tMeta.setAttribute('x', lx);
+      tMeta.setAttribute('y', metaY);
+      tMeta.setAttribute('text-anchor', 'middle');
+      tMeta.setAttribute('dominant-baseline', 'middle');
+      tMeta.setAttribute('font-size', metaFontSize);
+      tMeta.setAttribute('font-weight', '700');
+      tMeta.setAttribute('font-family', 'Barlow Condensed, Arial, sans-serif');
+      tMeta.setAttribute('fill', ehNaoAtend ? '#9a6f00' : '#136130');
+      tMeta.setAttribute('stroke', '#ffffff');
+      tMeta.setAttribute('stroke-width', '1.4');
+      tMeta.setAttribute('paint-order', 'stroke');
+      tMeta.setAttribute('stroke-linejoin', 'round');
+      tMeta.textContent = seletorMoedaStr(reg.meta);
+      g.appendChild(tMeta);
+    }
+
+    // Hover: aumenta o label da região e o traz pra frente (anti-flicker entre cidades vizinhas)
+    const cidsArr = [...reg.cids];
+    let hoverTimer = null;
+    const ampliar = () => {
+      if (hoverTimer) { clearTimeout(hoverTimer); hoverTimer = null; }
+      g.style.transform = 'scale(1.9)';
+      // Trazer o label pra frente de todos
+      if (g.parentNode) g.parentNode.appendChild(g);
+    };
+    const reduzir = () => {
+      hoverTimer = setTimeout(() => { g.style.transform = 'scale(1)'; }, 80);
+    };
+    cidsArr.forEach(cidade => {
+      const el = allMuns.find(e => e.getAttribute('data-cidade') === cidade);
+      if (el) {
+        el.addEventListener('mouseenter', ampliar);
+        el.addEventListener('mouseleave', reduzir);
+      }
+    });
+
+    svg.appendChild(g);
+  });
+}
+
 
 function abrirModal(chave) {
   let cidades = [], nome = '', cor = '';
@@ -1481,6 +2001,1196 @@ function abrirModal(chave) {
     </div>`;
   document.getElementById('modal-regiao').style.display = 'flex';
 }
+
+function abrirModalRegiaoCustom(chave, cidade) {
+  const cv = window._customVisoes && window._customVisoes[chave];
+  if (!cv) return;
+  // Achar a região que contém a cidade clicada
+  const reg = cv.regioes.find(r => r.cids.has(cidade));
+  if (!reg) return;
+
+  const cor = reg.cor;
+  const ehNaoAtend = reg.tipo === 'naoatendida';
+  const metaLabel = ehNaoAtend ? 'Potencial de Meta' : 'Meta';
+  const metaIcon = ehNaoAtend ? '📍' : '🎯';
+  const tipoTag = ehNaoAtend
+    ? '<span style="background:#f0a50022;color:#b8860b;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;">📍 Área não atendida</span>'
+    : '<span style="background:#2ea04322;color:#1a7431;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;">👤 Vendedor</span>';
+
+  const cidades = [...reg.cids]
+    .map(c => ({ nome: c, pop: popCidades[c] || 0 }))
+    .sort((a,b) => b.pop - a.pop);
+  const total = cidades.reduce((s,c) => s + c.pop, 0);
+
+  const rows = cidades.map(c => `
+    <tr>
+      <td style="padding:7px 12px;border-bottom:1px solid #f0f0f0;font-size:13px;">${c.nome.charAt(0)+c.nome.slice(1).toLowerCase()}</td>
+      <td style="padding:7px 12px;border-bottom:1px solid #f0f0f0;text-align:right;color:#666;font-size:13px;">${c.pop.toLocaleString('pt-BR')}</td>
+    </tr>`).join('');
+
+  // Card de meta (3ª coluna se houver valor)
+  const metaCard = reg.meta ? `
+        <div><div style="font-size:10px;opacity:.85;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;font-family:'Inter',sans-serif;">${metaLabel}</div><div style="font-family:'Barlow Condensed',sans-serif;font-size:1.5em;font-weight:800;">${seletorMoedaStr(reg.meta)}</div></div>` : '';
+  const gridCols = reg.meta ? '1fr 1fr 1fr' : '1fr 1fr';
+
+  document.getElementById('modal-regiao-content').innerHTML = `
+    <div style="border-left:4px solid ${cor};padding-left:16px;margin-bottom:14px;">
+      <h2 style="margin:0 0 6px 0;color:${cor};font-family:'Barlow Condensed',sans-serif;font-size:1.6em;font-weight:700;letter-spacing:.3px;">${reg.nome}</h2>
+      ${tipoTag}
+    </div>
+    <div style="background:linear-gradient(135deg,${cor}cc,${cor}55);padding:18px 22px;border-radius:12px;margin-bottom:20px;color:#fff;">
+      <div style="display:grid;grid-template-columns:${gridCols};gap:16px;text-align:center;">
+        <div><div style="font-size:10px;opacity:.85;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;font-family:'Inter',sans-serif;">Cidades</div><div style="font-family:'Barlow Condensed',sans-serif;font-size:2.4em;font-weight:800;">${cidades.length}</div></div>
+        <div><div style="font-size:10px;opacity:.85;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;font-family:'Inter',sans-serif;">População</div><div style="font-family:'Barlow Condensed',sans-serif;font-size:1.6em;font-weight:800;">${total.toLocaleString('pt-BR')}</div></div>
+        ${metaCard}
+      </div>
+    </div>
+    <p style="font-weight:600;font-size:12px;margin-bottom:10px;color:#666;text-transform:uppercase;letter-spacing:.5px;">📍 Cidades atendidas</p>
+    <div style="max-height:300px;overflow-y:auto;border:1px solid #eee;border-radius:8px;">
+      <table style="width:100%;border-collapse:collapse;">
+        <thead><tr style="background:#f8f8f8;position:sticky;top:0;">
+          <th style="padding:8px 12px;text-align:left;color:#888;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Cidade</th>
+          <th style="padding:8px 12px;text-align:right;color:#888;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Pop.</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+  document.getElementById('modal-regiao').style.display = 'flex';
+}</script>
+
+<!-- PAINEL SELETOR -->
+<div id="seletor-tip"></div>
+<div id="seletor-overlay">
+  <div id="seletor-panel">
+    <div id="seletor-hdr">
+      <span id="seletor-hdr-title">✏️ Editar Regiões</span>
+      <span id="seletor-visao-nome" style="font-size:12px;color:#8b949e;font-family:Inter,sans-serif;"></span>
+      <div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="sel-btn ok" id="seletor-btn-confirmar" onclick="seletorSalvarEAplicar()">✅ Confirmar edição</button>
+        <button class="sel-btn sec" onclick="seletorFechar()">✕ Cancelar</button>
+      </div>
+    </div>
+    <div id="seletor-tabs-bar"></div>
+    <div id="seletor-main">
+      <div id="seletor-mapwrap">
+        <svg id="seletor-svg" viewBox="0 0 960 636" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+      <div id="seletor-side">
+        <div id="seletor-srch"><input id="seletor-busca" type="text" placeholder="Buscar cidade..." oninput="seletorBuscar(this.value)"></div>
+        <div id="seletor-rlist"></div>
+        <div id="seletor-totbox">Total das regiões<strong id="seletor-tot">0 hab</strong></div>
+      </div>
+    </div>
+    <div id="seletor-botpanel">
+      <div id="seletor-bph">
+        <span id="seletor-bptitle">NOVA REGIÃO</span>
+        <div style="display:flex;gap:4px;">
+          <div id="seletor-curpop">0 hab</div>
+        </div>
+      </div>
+      <div id="seletor-curcid">0 cidades selecionadas</div>
+      <div id="seletor-bpflds" style="margin-top:6px;">
+        <input type="text" id="seletor-inp-nome" placeholder="Nome da região..." />
+        <input type="color" id="seletor-inp-cor" value="#3b82f6" />
+      </div>
+      <div id="seletor-bpflds2" style="display:flex;gap:5px;align-items:center;margin-bottom:7px;">
+        <select id="seletor-inp-tipo" onchange="seletorTipoChange()" style="background:#0d1117;border:1px solid #30363d;color:#e6edf3;padding:5px 8px;border-radius:6px;font-size:12px;font-family:'Inter',sans-serif;cursor:pointer;">
+          <option value="vendedor">👤 Vendedor</option>
+          <option value="naoatendida">📍 Não atendida</option>
+        </select>
+        <input type="text" id="seletor-inp-meta" placeholder="Meta R$..." oninput="seletorFmtMoeda(this)" style="flex:1;background:#0d1117;border:1px solid #30363d;color:#e6edf3;padding:5px 8px;border-radius:6px;font-size:12px;font-family:'Inter',sans-serif;" />
+      </div>
+      <div id="seletor-palette"></div>
+      <div id="seletor-curact">
+        <button class="sel-btn sec" onclick="seletorLimpar()">↩ Limpar seleção</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+// ═══════════════════════════════════════════════════
+// SELETOR DE REGIÕES — integrado ao mapa Fleischmann
+// ═══════════════════════════════════════════════════
+const SEL_PALETTE = ["#3b82f6","#22c55e","#f59e0b","#ef4444","#8b5cf6","#06b6d4","#f97316","#ec4899","#14b8a6","#a3e635"];
+const SEL_NS = 'http://www.w3.org/2000/svg';
+
+let selRegs = [];   // [{nome, cor, cids: Set, pop, meta, tipo}]
+let selSel = new Set();
+let selModoEd = null;
+let selChaveAtiva = null;
+let selEls = {};    // nome → polygon element no seletor-svg
+
+// ── Helpers de meta (valor em R$) e tipo (vendedor / não atendida) ──
+function seletorFmtMoeda(input) {
+  let v = input.value.replace(/\D/g, '');
+  if (!v) { input.value = ''; return; }
+  v = (parseInt(v, 10) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  input.value = 'R$ ' + v;
+}
+function seletorParseMoeda(str) {
+  if (!str) return 0;
+  const num = String(str).replace(/[^\d,]/g, '').replace(',', '.');
+  return parseFloat(num) || 0;
+}
+function seletorMoedaStr(valor) {
+  return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+function seletorTipoChange() {
+  const tipo = document.getElementById('seletor-inp-tipo').value;
+  const metaInp = document.getElementById('seletor-inp-meta');
+  metaInp.placeholder = tipo === 'vendedor' ? 'Meta R$...' : 'Potencial R$...';
+}
+
+// ── Persistência das visões custom (localStorage) ──
+const VISOES_FIXAS = {"custom_1781613887310": {"nome": "Rabele Potencial", "regioes": [{"nome": "CURITIBA", "cor": "#22c55e", "cids": ["ADRIANÓPOLIS", "TUNAS DO PARANÁ", "CERRO AZUL", "BOCAIÚVA DO SUL", "ANTONINA", "GUARAQUEÇABA", "CAMPINA GRANDE DO SUL", "PARANAGUÁ", "PONTAL DO PARANÁ", "MATINHOS", "GUARATUBA", "MORRETES", "PIRAQUARA", "PINHAIS", "QUATRO BARRAS", "COLOMBO", "RIO BRANCO DO SUL", "ALMIRANTE TAMANDARÉ", "ITAPERUÇU", "CAMPO MAGRO", "ARAUCÁRIA", "CURITIBA", "SÃO JOSÉ DOS PINHAIS", "TIJUCAS DO SUL", "FAZENDA RIO GRANDE", "MANDIRITUBA", "CAMPO LARGO"], "pop": 3852676, "meta": 4500000, "tipo": "naoatendida"}, {"nome": "113 - ROSEANE", "cor": "#06b6d4", "cids": ["LONDRINA"], "pop": 581382, "meta": 80000, "tipo": "vendedor"}, {"nome": "112 - MARCELO MARINGA", "cor": "#853232", "cids": ["MARINGÁ", "MANDAGUARI", "MARIALVA", "SARANDI", "FLORESTA", "PAIÇANDU", "MANDAGUAÇU"], "pop": 735566, "meta": 600000, "tipo": "vendedor"}, {"nome": "23-ALEX/ 55-OLACIR", "cor": "#3b82f6", "cids": ["FOZ DO IGUAÇU", "SANTA TEREZINHA DE ITAIPU"], "pop": 324243, "meta": 530000, "tipo": "vendedor"}, {"nome": "45 - LEANDRO", "cor": "#ef4444", "cids": ["SÃO MIGUEL DO IGUAÇU", "ITAIPULÂNDIA", "SANTA HELENA", "MISSAL", "RAMILÂNDIA", "DIAMANTE D'OESTE", "VERA CRUZ DO OESTE", "CÉU AZUL", "MATELÂNDIA", "MEDIANEIRA", "SERRANÓPOLIS DO IGUAÇU"], "pop": 179801, "meta": 400000, "tipo": "vendedor"}, {"nome": "20 - ELEAZER", "cor": "#22c55e", "cids": ["ENTRE RIOS DO OESTE", "SÃO JOSÉ DAS PALMEIRAS", "SÃO PEDRO DO IGUAÇU", "TOLEDO", "OURO VERDE DO OESTE", "ASSIS CHATEAUBRIAND", "TUPÃSSI", "MARIPÁ", "NOVA SANTA ROSA", "MARECHAL CÂNDIDO RONDON", "PATO BRAGADO", "QUATRO PONTES", "MERCEDES"], "pop": 314926, "meta": 400000, "tipo": "vendedor"}, {"nome": "33 - GILMAR/ 12 - NELSON ROCHA", "cor": "#46ece9", "cids": ["CASCAVEL", "SANTA TEREZA DO OESTE", "CAFELÂNDIA", "JESUÍTAS", "NOVA AURORA", "CORBÉLIA", "CAMPO BONITO", "BRAGANEY", "IGUATU", "ANAHY"], "pop": 456900, "meta": 700000, "tipo": "vendedor"}, {"nome": "62 - NELSO FRANÇA", "cor": "#9315f9", "cids": ["GUARANIAÇU", "IBEMA", "CATANDUVAS", "BOA VISTA DA APARECIDA", "TRÊS BARRAS DO PARANÁ", "QUEDAS DO IGUAÇU", "RIO BONITO DO IGUAÇU", "PORTO BARREIRO", "LARANJEIRAS DO SUL", "VIRMOND", "CANTAGALO", "MARQUINHO", "NOVA LARANJEIRAS", "DIAMANTE DO SUL", "ESPIGÃO ALTO DO IGUAÇU"], "pop": 198394, "meta": 230000, "tipo": "vendedor"}, {"nome": "51 - Ademir Pires", "cor": "#a3e635", "cids": ["LINDOESTE", "SANTA LÚCIA", "BOM JESUS DO SUL", "BARRACÃO", "SANTO ANTÔNIO DO SUDOESTE", "BELA VISTA DA CAROBA", "PÉROLA D'OESTE", "PRANCHITA", "PLANALTO", "CAPANEMA", "CAPITÃO LEÔNIDAS MARQUES", "REALEZA", "SANTA IZABEL DO OESTE", "AMPÉRE"], "pop": 174189, "meta": 0, "tipo": "vendedor"}, {"nome": "63 - Ademir Tres", "cor": "#f4f73b", "cids": ["NOVA PRATA DO IGUAÇU", "SAUDADE DO IGUAÇU", "SULINA", "SÃO JORGE D'OESTE", "CRUZEIRO DO IGUAÇU", "BOA ESPERANÇA DO IGUAÇU", "SÃO JOÃO", "ITAPEJARA D'OESTE", "RENASCENÇA", "BOM SUCESSO DO SUL", "VERÊ", "MARMELEIRO", "FLOR DA SERRA DO SUL", "SALGADO FILHO", "MANFRINÓPOLIS", "PINHAL DE SÃO BENTO", "NOVA ESPERANÇA DO SUDOESTE", "FRANCISCO BELTRÃO", "ENÉAS MARQUES", "DOIS VIZINHOS", "SALTO DO LONTRA"], "pop": 294710, "meta": 280000, "tipo": "vendedor"}, {"nome": "79 - Luiz Lamp", "cor": "#3b82f6", "cids": ["VITORINO", "PATO BRANCO", "CORONEL VIVIDA", "PALMAS", "CORONEL DOMINGOS SOARES", "CHOPINZINHO", "MANGUEIRINHA", "HONÓRIO SERPA", "CLEVELÂNDIA", "MARIÓPOLIS"], "pop": 266910, "meta": 300000, "tipo": "vendedor"}, {"nome": "49 - Marcelo Guarapuava", "cor": "#ef4444", "cids": ["CANDÓI", "PRUDENTÓPOLIS", "GUAMIRANGA", "PITANGA", "BOA VENTURA DE SÃO ROQUE", "TURVO", "GUARAPUAVA", "RESERVA DO IGUAÇU", "FOZ DO JORDÃO", "PINHÃO"], "pop": 378371, "meta": 300000, "tipo": "vendedor"}, {"nome": "Região Ubiratã", "cor": "#945d1e", "cids": ["CAMPINA DO SIMÃO", "SANTA MARIA DO OESTE", "GOIOXIM", "PALMITAL", "MATO RICO", "LARANJAL", "ALTAMIRA DO PARANÁ", "NOVA CANTU", "CAMPINA DA LAGOA", "BRASILÂNDIA DO SUL", "ALTO PIQUIRI", "FORMOSA DO OESTE", "IRACEMA DO OESTE", "UBIRATÃ", "MARILUZ", "MOREIRA SALES", "JANIÓPOLIS", "BOA ESPERANÇA", "JURANDA", "RANCHO ALEGRE D'OESTE", "GOIOERÊ", "QUARTO CENTENÁRIO"], "pop": 211340, "meta": 265000, "tipo": "naoatendida"}, {"nome": "85 - Venilson", "cor": "#22c55e", "cids": ["RONCADOR", "ENGENHEIRO BELTRÃO", "QUINTA DO SOL", "BARBOSA FERRAZ", "FÊNIX", "IRETAMA", "NOVA TEBAS", "CORUMBATAÍ DO SUL", "ARARUNA", "FAROL", "MAMBORÊ", "LUIZIANA", "CAMPO MOURÃO", "PEABIRU"], "pop": 228316, "meta": 300000, "tipo": "vendedor"}, {"nome": "28 - Claudinei", "cor": "#f97316", "cids": ["TUNEIRAS DO OESTE", "CIANORTE", "TAPEJARA", "CRUZEIRO DO OESTE", "SÃO JORGE DO PATROCÍNIO", "ESPERANÇA NOVA", "XAMBRÊ", "UMUARAMA", "PEROBAL", "CAFEZAL DO SUL", "PÉROLA", "ALTÔNIA", "IPORÃ", "PALOTINA", "FRANCISCO ALVES", "TERRA ROXA", "GUAÍRA"], "pop": 413169, "meta": 200000, "tipo": "vendedor"}, {"nome": "Ponta Grossa", "cor": "#9e07d5", "cids": ["PONTA GROSSA", "CASTRO", "CARAMBEÍ"], "pop": 476405, "meta": 600000, "tipo": "naoatendida"}, {"nome": "Região Irati", "cor": "#d2b837", "cids": ["CRUZ MACHADO", "INÁCIO MARTINS", "IRATI", "FERNANDES PINHEIRO", "PALMEIRA", "BALSA NOVA", "SÃO JOÃO DO TRIUNFO", "LAPA", "PORTO AMAZONAS", "CONTENDA", "QUITANDINHA", "AGUDOS DO SUL", "PIÊN", "CAMPO DO TENENTE", "RIO NEGRO", "ANTÔNIO OLINTO", "SÃO MATEUS DO SUL", "REBOUÇAS", "RIO AZUL", "MALLET", "PAULO FRONTIN", "PAULA FREITAS", "UNIÃO DA VITÓRIA", "PORTO VITÓRIA", "BITURUNA", "GENERAL CARNEIRO", "IMBITUVA", "TEIXEIRA SOARES"], "pop": 585977, "meta": 732470, "tipo": "naoatendida"}, {"nome": "REGIÃO POTENCIAL", "cor": "#5c7f78", "cids": ["IPIRANGA", "IVAÍ", "TIBAGI", "PIRAÍ DO SUL", "JAGUARIAÍVA", "SENGÉS", "DOUTOR ULYSSES", "WENCESLAU BRAZ", "SÃO JOSÉ DA BOA VISTA", "SANTANA DO ITARARÉ", "SALTO DO ITARARÉ", "CARLÓPOLIS", "SIQUEIRA CAMPOS", "QUATIGUÁ", "JOAQUIM TÁVORA", "RIBEIRÃO CLARO", "JACAREZINHO", "CAMBARÁ", "BARRA DO JACARÉ", "ANDIRÁ", "ITAMBARACÁ", "BANDEIRANTES", "SANTA MARIANA", "LEÓPOLIS", "CORNÉLIO PROCÓPIO", "SANTA AMÉLIA", "ABATIÁ", "SANTO ANTÔNIO DA PLATINA", "GUAPIRAMA", "CONSELHEIRO MAIRINCK", "TOMAZINA", "JABOTI", "PINHALÃO", "ARAPOTI", "IBAITI", "JAPIRA", "JUNDIAÍ DO SUL", "RIBEIRÃO DO PINHAL", "NOVA FÁTIMA", "CONGONHINHAS", "SANTO ANTÔNIO DO PARAÍSO", "SÃO SEBASTIÃO DA AMOREIRA", "NOVA AMÉRICA DA COLINA", "URAÍ", "SERTANEJA", "RANCHO ALEGRE", "SERTANÓPOLIS", "PRIMEIRO DE MAIO", "BELA VISTA DO PARAÍSO", "ALVORADA DO SUL", "PORECATU", "CENTENÁRIO DO SUL", "JAGUAPITÃ", "PRADO FERREIRA", "FLORESTÓPOLIS", "MIRASELVA", "JATAIZINHO", "NOVA SANTA BÁRBARA", "SAPOPEMA", "CURIÚVA", "FIGUEIRA", "VENTANIA", "TELÊMACO BORBA", "ORTIGUEIRA", "RESERVA", "IMBAÚ", "CÂNDIDO DE ABREU", "ROSÁRIO DO IVAÍ", "RIO BRANCO DO IVAÍ", "GRANDES RIOS", "FAXINAL", "CRUZMALTINA", "BORRAZÓPOLIS", "RIO BOM", "MAUÁ DA SERRA", "CAMBIRA", "MARUMBI", "NOVO ITACOLOMI", "JANDAIA DO SUL", "BOM SUCESSO", "ITAMBÉ", "SÃO PEDRO DO IVAÍ", "KALORÉ", "SÃO JOÃO DO IVAÍ", "LUNARDELLI", "LIDIANÓPOLIS", "GODOY MOREIRA", "ARAPUÃ", "JARDIM ALEGRE", "IVAIPORÃ", "ARIRANHA DO IVAÍ", "MANOEL RIBAS", "SABÁUDIA", "PITANGUEIRAS", "ASTORGA", "MUNHOZ DE MELO", "SANTA FÉ", "GUARACI", "CAFEARA", "LUPIONÓPOLIS", "SANTA INÊS", "SANTO INÁCIO", "ITAGUAJÉ", "JARDIM OLINDA", "PARANAPOEMA", "INAJÁ", "SANTO ANTÔNIO DO CAIUÁ", "SÃO JOÃO DO CAIUÁ", "PARANACITY", "COLORADO", "NOSSA SENHORA DAS GRAÇAS", "CRUZEIRO DO SUL", "ALTO PARANÁ", "UNIFLOR", "LOBATO", "FLÓRIDA", "ÂNGULO", "IGUARAÇU", "NOVA ESPERANÇA", "ATALAIA", "SÃO JORGE DO IVAÍ", "PRESIDENTE CASTELO BRANCO", "FLORAÍ", "OURIZONA", "DOUTOR CAMARGO", "IVATUBA", "JUSSARA", "TERRA BOA", "SÃO TOMÉ", "JAPURÁ", "SÃO CARLOS DO IVAÍ", "TAMBOARA", "PARANAVAÍ", "GUAIRAÇÁ", "TERRA RICA", "ITAÚNA DO SUL", "DIAMANTE DO NORTE", "MARILENA", "NOVA LONDRINA", "LOANDA", "MIRADOR", "PARAÍSO DO NORTE", "SÃO MANOEL DO PARANÁ", "NOVA ALIANÇA DO IVAÍ", "RONDON", "INDIANÓPOLIS", "AMAPORÃ", "GUAPOREMA", "PLANALTINA DO PARANÁ", "CIDADE GAÚCHA", "TAPIRA", "SANTA MÔNICA", "SANTA ISABEL DO IVAÍ", "SANTA CRUZ DE MONTE CASTELO", "QUERÊNCIA DO NORTE", "PORTO RICO", "SÃO PEDRO DO PARANÁ", "NOVA OLÍMPIA", "MARIA HELENA", "IVATÉ", "DOURADINA", "ICARAÍMA", "ALTO PARAÍSO", "CALIFÓRNIA", "MARILÂNDIA DO SUL", "TAMARANA", "SÃO JERÔNIMO DA SERRA", "ASSAÍ", "SANTA CECÍLIA DO PAVÃO", "IBIPORÃ", "CAMBÉ", "ROLÂNDIA", "ARAPONGAS", "APUCARANA"], "pop": 2380998, "meta": 2980000, "tipo": "naoatendida"}]}};
+const LS_VISOES_KEY = 'rabele_visoes_custom_v1';
+
+// ══════════════════════════════════════════════════
+// SUPABASE — persistência compartilhada (todos veem)
+// ══════════════════════════════════════════════════
+const SUPABASE_URL = 'https://duzvlebxyrnksfvcsuae.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1enZsZWJ4eXJua3NmdmNzdWFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDQ5NzEsImV4cCI6MjA5NzM4MDk3MX0.e8pulvCYsScxikAJ_wtVy3HV-Pf0w5GmiKHDJeKdei0';
+let _sb = null;
+function getSB() {
+  // Usamos fetch direto na API REST (evita DataCloneError do SDK em iframes).
+  // Retorna true se a config existe.
+  return !!(SUPABASE_URL && SUPABASE_ANON);
+}
+
+const SB_HEADERS = {
+  'apikey': SUPABASE_ANON,
+  'Authorization': 'Bearer ' + SUPABASE_ANON,
+  'Content-Type': 'application/json'
+};
+const SB_REST = SUPABASE_URL + '/rest/v1/visoes';
+
+// Serializa uma visão (Sets → arrays) para gravar no banco
+function visaoParaJSON(cv) {
+  return {
+    nome: cv.nome,
+    regioes: cv.regioes.map(r => ({
+      nome: r.nome, cor: r.cor, cids: [...r.cids], pop: r.pop,
+      meta: r.meta || 0, tipo: r.tipo || 'vendedor'
+    }))
+  };
+}
+
+// Salva/atualiza uma visão no Supabase (upsert via REST)
+async function supabaseSalvarVisao(chave, cv) {
+  if (!getSB()) return false;
+  try {
+    const payload = visaoParaJSON(cv);
+    const res = await fetch(SB_REST, {
+      method: 'POST',
+      headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({
+        id: chave,
+        nome: payload.nome,
+        regioes: payload.regioes,
+        atualizado_em: new Date().toISOString()
+      })
+    });
+    if (!res.ok) { console.warn('Supabase salvar:', res.status, await res.text()); return false; }
+    return true;
+  } catch(e) { console.warn('Supabase salvar (exceção):', e); return false; }
+}
+
+// Exclui uma visão do Supabase
+async function supabaseExcluirVisao(chave) {
+  if (!getSB()) return false;
+  try {
+    const res = await fetch(SB_REST + '?id=eq.' + encodeURIComponent(chave), {
+      method: 'DELETE',
+      headers: SB_HEADERS
+    });
+    if (!res.ok) { console.warn('Supabase excluir:', res.status); return false; }
+    return true;
+  } catch(e) { console.warn('Supabase excluir (exceção):', e); return false; }
+}
+
+// Carrega todas as visões do Supabase e renderiza os cards
+async function supabaseCarregarVisoes() {
+  if (!getSB()) return false;
+  try {
+    const res = await fetch(SB_REST + '?select=*', { headers: SB_HEADERS });
+    if (!res.ok) { console.warn('Supabase carregar:', res.status); return false; }
+    const data = await res.json();
+    if (!window._customVisoes) window._customVisoes = {};
+    (data || []).forEach(row => {
+      if (window._customVisoes[row.id]) return; // já existe (não duplicar card)
+      window._customVisoes[row.id] = {
+        nome: row.nome,
+        regioes: (row.regioes || []).map(r => ({
+          nome: r.nome, cor: r.cor, cids: new Set(r.cids), pop: r.pop,
+          meta: r.meta || 0, tipo: r.tipo || 'vendedor'
+        }))
+      };
+      VISAO_NOME[row.id] = row.nome;
+      VISAO_COR[row.id]  = (row.regioes && row.regioes[0]) ? row.regioes[0].cor : '#3b82f6';
+      const todasCids = new Set();
+      (row.regioes || []).forEach(r => (r.cids||[]).forEach(c => todasCids.add(c)));
+      const popTotal = [...todasCids].reduce((s,n) => s + (popCidades[n]||0), 0);
+      criarCardNovaVisao(row.id, row.nome, VISAO_COR[row.id], popTotal, todasCids.size);
+    });
+    return true;
+  } catch(e) { console.warn('Supabase carregar (exceção):', e); return false; }
+}
+
+// Migra a visão fixa do HTML para o Supabase (só roda se ainda não existir lá)
+async function supabaseMigrarFixas() {
+  if (!getSB() || typeof VISOES_FIXAS === 'undefined') return;
+  try {
+    // Buscar ids já existentes
+    const res = await fetch(SB_REST + '?select=id', { headers: SB_HEADERS });
+    const existentes = res.ok ? (await res.json()).map(r => r.id) : [];
+    for (const [chave, cv] of Object.entries(VISOES_FIXAS)) {
+      if (existentes.includes(chave)) continue;
+      await fetch(SB_REST, {
+        method: 'POST',
+        headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify({
+          id: chave, nome: cv.nome, regioes: cv.regioes,
+          atualizado_em: new Date().toISOString()
+        })
+      });
+    }
+  } catch(e) { console.warn('Migração fixas:', e); }
+}
+
+
+
+function salvarVisoesLS() {
+  try {
+    if (!window._customVisoes) return;
+    const serial = {};
+    Object.entries(window._customVisoes).forEach(([chave, cv]) => {
+      serial[chave] = {
+        nome: cv.nome,
+        regioes: cv.regioes.map(r => ({
+          nome: r.nome, cor: r.cor, cids: [...r.cids], pop: r.pop,
+          meta: r.meta||0, tipo: r.tipo||'vendedor'
+        }))
+      };
+    });
+    localStorage.setItem(LS_VISOES_KEY, JSON.stringify(serial));
+  } catch(e) { console.warn('Falha ao salvar visões:', e); }
+}
+
+async function carregarVisoesLS() {
+  if (!window._customVisoes) window._customVisoes = {};
+  const aplicar = (serial) => {
+    Object.entries(serial).forEach(([chave, cv]) => {
+      if (window._customVisoes[chave]) return; // já carregada
+      window._customVisoes[chave] = {
+        nome: cv.nome,
+        regioes: cv.regioes.map(r => ({
+          nome: r.nome, cor: r.cor, cids: new Set(r.cids), pop: r.pop,
+          meta: r.meta||0, tipo: r.tipo||'vendedor'
+        }))
+      };
+      VISAO_NOME[chave] = cv.nome;
+      VISAO_COR[chave]  = cv.regioes[0] ? cv.regioes[0].cor : '#3b82f6';
+      const todasCids = new Set();
+      cv.regioes.forEach(r => r.cids.forEach(c => todasCids.add(c)));
+      const popTotal = [...todasCids].reduce((s,n) => s + (popCidades[n]||0), 0);
+      criarCardNovaVisao(chave, cv.nome, VISAO_COR[chave], popTotal, todasCids.size);
+    });
+  };
+  try {
+    // 1) SUPABASE primeiro (fonte da verdade — todos veem)
+    const sb = getSB();
+    if (sb) {
+      // Timeout de segurança: se o Supabase não responder em 6s, usa fallback
+      const comTimeout = (promise, ms) => Promise.race([
+        promise,
+        new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))
+      ]);
+      await comTimeout(supabaseMigrarFixas(), 6000).catch(() => {});
+      const ok = await comTimeout(supabaseCarregarVisoes(), 6000).catch(() => false);
+      if (ok) {
+        salvarVisoesLS();  // backup local
+        return;
+      }
+    }
+    // 2) FALLBACK (Supabase indisponível): fixas do HTML + localStorage
+    if (typeof VISOES_FIXAS !== 'undefined') aplicar(VISOES_FIXAS);
+    const raw = localStorage.getItem(LS_VISOES_KEY);
+    if (raw) aplicar(JSON.parse(raw));
+  } catch(e) {
+    console.warn('Falha ao carregar visões:', e);
+    // Fallback de emergência
+    try {
+      if (typeof VISOES_FIXAS !== 'undefined') aplicar(VISOES_FIXAS);
+      const raw = localStorage.getItem(LS_VISOES_KEY);
+      if (raw) aplicar(JSON.parse(raw));
+    } catch(_) {}
+  }
+}
+
+// Mapa de cores das visões (para reconstruir os territórios)
+const VISAO_COR = {
+  'coferpan': '#9E9E9E',
+  'fermisul': '#85C1A0',
+  'rabele-fleisch-hoje': '#9B59B6',
+  'rabele': '#3498DB',
+  'fleisch-rabele': '#1a6fa8',
+  'coferpan-apos': '#757575'
+};
+const VISAO_NOME = {
+  'coferpan': 'Coferpan Total Hoje',
+  'fermisul': 'Fermisul',
+  'rabele-fleisch-hoje': 'Rabele Fleischmann hoje',
+  'rabele': 'Expansão proposta Rabele',
+  'fleisch-rabele': 'Rabele área total',
+  'coferpan-apos': 'Sobra de área Coferpan'
+};
+
+
+const SENHA_MAPA = 'Mapas2026*';
+let senhaValidada = false;
+
+function pedirSenha(callback) {
+  if (senhaValidada) { callback(); return; }
+  const s = prompt('🔐 Senha para edição:');
+  if (s === null) return; // cancelou
+  if (s === SENHA_MAPA) {
+    senhaValidada = true;
+    setTimeout(() => { senhaValidada = false; }, 30 * 60 * 1000); // expira em 30min
+    callback();
+  } else {
+    alert('Senha incorreta.');
+  }
+}
+
+function pedirSenhaEAbrir() {
+  pedirSenha(abrirSeletor);
+}
+
+function pedirSenhaENovaVisao() {
+  pedirSenha(abrirSeletorNovaVisao);
+}
+
+function garantirBotaoSalvarInj() {
+  if (document.getElementById('seletor-btn-salvar-inj')) {
+    document.getElementById('seletor-btn-salvar-inj').style.display = '';
+    return;
+  }
+  const btn = document.createElement('button');
+  btn.className = 'sel-btn'; btn.id = 'seletor-btn-salvar-inj';
+  btn.textContent = '💾 Salvar região';
+  btn.onclick = () => {
+    const nome = document.getElementById('seletor-inp-nome').value.trim();
+    const cor  = document.getElementById('seletor-inp-cor').value;
+    const tipo = document.getElementById('seletor-inp-tipo').value;
+    const meta = seletorParseMoeda(document.getElementById('seletor-inp-meta').value);
+    const pop  = [...selSel].reduce((s,n) => s + (popCidades[n]||0), 0);
+
+    if (selModoEd !== null) {
+      // MODO EDIÇÃO: atualizar região existente
+      if (!nome) { alert('Dê um nome para a região.'); return; }
+      selRegs[selModoEd] = { nome, cor, cids: new Set(selSel), pop, meta, tipo };
+      selModoEd = null;
+      selSel.clear();
+      seletorLimparCampos();
+      document.getElementById('seletor-inp-cor').value = SEL_PALETTE[selRegs.length % SEL_PALETTE.length];
+      document.getElementById('seletor-botpanel').classList.remove('em');
+      document.getElementById('seletor-bptitle').textContent = 'NOVA REGIÃO';
+      document.getElementById('seletor-bptitle').classList.remove('em');
+      btn.textContent = '💾 Salvar região';
+      const cancelBtn = document.getElementById('seletor-btn-cancel-inj');
+      if (cancelBtn) cancelBtn.style.display = 'none';
+    } else {
+      // MODO NOVO: adicionar região
+      if (!selSel.size) { alert('Selecione pelo menos uma cidade.'); return; }
+      const nomeF = nome || (tipo === 'naoatendida' ? ('Área não atendida ' + (selRegs.length + 1)) : ('Vendedor ' + (selRegs.length + 1)));
+      selRegs.push({ nome: nomeF, cor, cids: new Set(selSel), pop, meta, tipo });
+      selSel.clear();
+      seletorLimparCampos();
+      document.getElementById('seletor-inp-cor').value = SEL_PALETTE[selRegs.length % SEL_PALETTE.length];
+    }
+    seletorRenderPaleta();
+    seletorRenderSidebar();
+    seletorPaint();
+  };
+  document.getElementById('seletor-curact').insertBefore(btn, document.getElementById('seletor-curact').firstChild);
+
+  // Botão cancelar edição (oculto por padrão)
+  const btnCancel = document.createElement('button');
+  btnCancel.className = 'sel-btn sec'; btnCancel.id = 'seletor-btn-cancel-inj';
+  btnCancel.textContent = '✕ Cancelar edição'; btnCancel.style.display = 'none';
+  btnCancel.onclick = () => {
+    selModoEd = null; selSel.clear();
+    seletorLimparCampos();
+    document.getElementById('seletor-inp-cor').value = SEL_PALETTE[selRegs.length % SEL_PALETTE.length];
+    document.getElementById('seletor-botpanel').classList.remove('em');
+    document.getElementById('seletor-bptitle').textContent = 'NOVA REGIÃO';
+    document.getElementById('seletor-bptitle').classList.remove('em');
+    btn.textContent = '💾 Salvar região';
+    btnCancel.style.display = 'none';
+    seletorRenderPaleta(); seletorRenderSidebar(); seletorPaint();
+  };
+  document.getElementById('seletor-curact').insertBefore(btnCancel, btn.nextSibling);
+}
+
+function abrirSeletorNovaVisao() {
+  selChaveAtiva = '__nova__';
+  selRegs = [];
+  selSel.clear();
+  selModoEd = null;
+  document.getElementById('seletor-visao-nome').textContent = '— Nova Visão';
+  document.getElementById('seletor-btn-confirmar').textContent = '✅ Criar Visão';
+  document.getElementById('seletor-inp-nome').value = '';
+  document.getElementById('seletor-inp-cor').value = SEL_PALETTE[0];
+  document.getElementById('seletor-inp-meta').value = '';
+  document.getElementById('seletor-inp-tipo').value = 'vendedor';
+  seletorTipoChange();
+  document.getElementById('seletor-bptitle').textContent = 'NOVA REGIÃO';
+  document.getElementById('seletor-bptitle').classList.remove('em');
+  document.getElementById('seletor-botpanel').classList.remove('em');
+  seletorConstruirSVG();
+  document.getElementById('seletor-overlay').classList.add('aberto');
+  document.getElementById('seletor-tabs-bar').innerHTML =
+    '<div class="sel-tab ativa" style="color:#2ea043;border-bottom-color:#2ea043;">＋ Selecione cidades → nomeie → Salvar região. Repita por vendedor.</div>';
+
+  garantirBotaoSalvarInj();
+  seletorRenderSidebar();
+  seletorRenderPaleta();
+  seletorPaint();
+}
+
+function abrirSeletor() {
+  if (!travadoTerr) {
+    alert('Clique num card de visão para ativá-la antes de editar.');
+    return;
+  }
+  selChaveAtiva = travadoTerr;
+  document.getElementById('seletor-visao-nome').textContent = '— ' + VISAO_NOME[selChaveAtiva];
+
+  // Construir SVG do seletor a partir do SVG principal
+  seletorConstruirSVG();
+
+  // Carregar cidades da visão ativa como regiões editáveis
+  seletorCarregarVisao();
+
+  // Abrir overlay
+  document.getElementById('seletor-overlay').classList.add('aberto');
+  selSel.clear();
+  selModoEd = null;
+  seletorLimparCampos();
+  document.getElementById('seletor-inp-cor').value = SEL_PALETTE[selRegs.length % SEL_PALETTE.length];
+  document.getElementById('seletor-bptitle').textContent = 'NOVA REGIÃO';
+  document.getElementById('seletor-bptitle').classList.remove('em');
+  document.getElementById('seletor-botpanel').classList.remove('em');
+
+  const ehCustom = selChaveAtiva.startsWith('custom_');
+
+  // Para visões custom: injetar botão salvar (permite adicionar/editar várias regiões)
+  if (ehCustom) {
+    garantirBotaoSalvarInj();
+    const bs = document.getElementById('seletor-btn-salvar-inj');
+    const bc = document.getElementById('seletor-btn-cancel-inj');
+    if (bs) bs.textContent = '💾 Salvar região';
+    if (bc) bc.style.display = 'none';
+    document.getElementById('seletor-tabs-bar').innerHTML =
+      '<div class="sel-tab ativa">✏️ Edite regiões existentes (✏️) ou adicione novas → Salvar região</div>';
+  } else {
+    // 6 visões originais: ocultar botão injetado se existir
+    const bs = document.getElementById('seletor-btn-salvar-inj');
+    const bc = document.getElementById('seletor-btn-cancel-inj');
+    if (bs) bs.style.display = 'none';
+    if (bc) bc.style.display = 'none';
+  }
+
+  seletorRenderAbas();
+  seletorRenderSidebar();
+  seletorRenderPaleta();
+  seletorPaint();
+
+  // Apenas visões NÃO-custom (as 6 originais, região única) entram em edição automática.
+  // Custom multi-região: deixa livre para editar qualquer uma ou adicionar novas.
+  if (!ehCustom && selRegs.length > 0) seletorEditarRegiao(0);
+}
+
+function seletorConstruirSVG() {
+  const svgSel = document.getElementById('seletor-svg');
+  svgSel.innerHTML = '';
+
+  // Grupo de polígonos e grupo de labels
+  const gp = document.createElementNS(SEL_NS, 'g'); gp.id = 'sel-gp';
+  const gl = document.createElementNS(SEL_NS, 'g'); gl.id = 'sel-gl';
+  svgSel.appendChild(gp);
+  svgSel.appendChild(gl);
+
+  const tipEl = document.getElementById('seletor-tip');
+  selEls = {};
+
+  // Clonar polígonos do mapa principal
+  allMuns.forEach(el => {
+    const nome = el.getAttribute('data-cidade');
+    if (!nome) return;
+    const pg = document.createElementNS(SEL_NS, 'polygon');
+    pg.setAttribute('points', el.getAttribute('points'));
+    pg.style.fill = '#1e2a3a';
+    pg.style.stroke = '#3d5068';
+    gp.appendChild(pg);
+    selEls[nome] = pg;
+
+    pg.addEventListener('mouseenter', e => {
+      const pop = popCidades[nome];
+      tipEl.textContent = nome + (pop ? ' · ' + pop.toLocaleString('pt-BR') + ' hab' : '');
+      tipEl.style.display = 'block';
+    });
+    pg.addEventListener('mousemove', e => {
+      tipEl.style.left = (e.clientX + 14) + 'px';
+      tipEl.style.top = (e.clientY - 30) + 'px';
+    });
+    pg.addEventListener('mouseleave', () => tipEl.style.display = 'none');
+    pg.addEventListener('click', () => seletorClique(nome));
+  });
+
+  // Labels das cidades polo (top 20)
+  const polos = Object.entries(popCidades)
+    .sort((a,b) => b[1]-a[1]).slice(0,25).map(e => e[0]);
+  polos.forEach(nome => {
+    const orig = allMuns.find(el => el.getAttribute('data-cidade') === nome);
+    if (!orig) return;
+    // Calcular centro aproximado do polígono
+    const pts = orig.getAttribute('points').trim().split(/\s+/).map(p => p.split(',').map(Number));
+    if (!pts.length) return;
+    const cx = pts.reduce((s,p)=>s+p[0],0)/pts.length;
+    const cy = pts.reduce((s,p)=>s+p[1],0)/pts.length;
+    const t = document.createElementNS(SEL_NS, 'text');
+    t.setAttribute('x', cx); t.setAttribute('y', cy);
+    t.setAttribute('text-anchor','middle'); t.setAttribute('dominant-baseline','middle');
+    t.setAttribute('font-size','5.5'); t.setAttribute('font-weight','600');
+    t.setAttribute('fill','#fff'); t.setAttribute('stroke','rgba(0,0,0,.7)');
+    t.setAttribute('stroke-width','0.35'); t.setAttribute('paint-order','stroke');
+    t.setAttribute('font-family','Arial,sans-serif');
+    t.textContent = nome.length > 14 ? nome.split(' ').slice(0,2).join(' ') : nome;
+    gl.appendChild(t);
+  });
+}
+
+function seletorCarregarVisao() {
+  // Converte a visão ativa em regiões do seletor
+  // Para visões com múltiplas "cores" agrupamos tudo em uma região
+  // Para as que têm sets explícitos (rabele-fleisch-hoje, fleisch-rabele), usamos os sets
+  selRegs = [];
+  const chave = selChaveAtiva;
+  const cor = VISAO_COR[chave];
+  const nome = VISAO_NOME[chave];
+
+  // Coletar cidades da visão ativa (usando os elementos apagados/visíveis)
+  // Disparar a visão para ter certeza do estado atual
+  destacarPorChave(chave);
+
+  const cidsVisiveis = new Set(
+    allMuns.filter(el => !el.classList.contains('mun-apagado'))
+           .map(el => el.getAttribute('data-cidade'))
+           .filter(Boolean)
+  );
+
+  if (cidsVisiveis.size > 0) {
+    const pop = [...cidsVisiveis].reduce((s,n) => s + (popCidades[n]||0), 0);
+    selRegs = [{ nome, cor, cids: new Set(cidsVisiveis), pop }];
+  }
+
+  // Visões custom: restaurar todas as regiões para edição
+  if (chave.startsWith('custom_') && window._customVisoes && window._customVisoes[chave]) {
+    const cv = window._customVisoes[chave];
+    selRegs = cv.regioes.map(r => ({ nome: r.nome, cor: r.cor, cids: new Set(r.cids), pop: r.pop, meta: r.meta||0, tipo: r.tipo||'vendedor' }));
+  }
+}
+
+function seletorRenderAbas() {
+  // No seletor integrado, as "abas" mostram as sub-regiões
+  // Vamos usar um único contexto de edição sem abas múltiplas
+  const bar = document.getElementById('seletor-tabs-bar');
+  bar.innerHTML = `<div class="sel-tab ativa">${VISAO_NOME[selChaveAtiva]}</div>`;
+}
+
+function seletorClique(nome) {
+  if (selSel.has(nome)) selSel.delete(nome);
+  else selSel.add(nome);
+  seletorPaint();
+}
+
+function seletorPaint() {
+  const cs = document.getElementById('seletor-inp-cor').value;
+  Object.entries(selEls).forEach(([nome, el]) => {
+    if (!el) return;
+    const reg = selRegs.find((r, i) => i !== selModoEd && r.cids.has(nome));
+    if (selSel.has(nome)) {
+      el.style.fill = cs;
+      el.style.stroke = selModoEd !== null ? '#f0a500' : cs;
+      el.style.strokeWidth = '0.9';
+      el.style.opacity = '1';
+    } else if (reg) {
+      el.style.fill = reg.cor;
+      el.style.stroke = '#3d5068';
+      el.style.strokeWidth = selModoEd !== null ? '0.4' : '0.5';
+      el.style.opacity = selModoEd !== null ? '0.6' : '1';
+    } else {
+      el.style.fill = '#1e2a3a';
+      el.style.stroke = '#3d5068';
+      el.style.strokeWidth = '0.5';
+      el.style.opacity = '1';
+    }
+  });
+
+  const pop = [...selSel].reduce((s,n) => s + (popCidades[n]||0), 0);
+  document.getElementById('seletor-curpop').textContent = pop.toLocaleString('pt-BR') + ' hab';
+  document.getElementById('seletor-curcid').textContent = selSel.size + ' cidade' + (selSel.size!==1?'s':'') + ' selecionadas';
+
+  // Atualizar labels de polo com cor da região
+  const gl = document.getElementById('sel-gl');
+  if (gl) {
+    gl.querySelectorAll('text').forEach(t => {
+      const nome = t.textContent.trim();
+      const reg = selRegs.find(r => [...r.cids].some(c => c.startsWith(nome.split(' ')[0]) && c.length < nome.length + 8));
+      // simples: deixar branco sempre
+      t.setAttribute('fill', '#fff');
+    });
+  }
+}
+
+function seletorSalvar() {
+  if (!selSel.size) { alert('Selecione pelo menos uma cidade.'); return; }
+  const nome = document.getElementById('seletor-inp-nome').value.trim() || ('Região ' + (selRegs.length + 1));
+  const cor = document.getElementById('seletor-inp-cor').value;
+  const pop = [...selSel].reduce((s,n) => s + (popCidades[n]||0), 0);
+  if (selModoEd !== null) {
+    selRegs[selModoEd] = { nome, cor, cids: new Set(selSel), pop };
+    seletorCancelarEd();
+  } else {
+    selRegs.push({ nome, cor, cids: new Set(selSel), pop });
+    selSel.clear();
+    document.getElementById('seletor-inp-nome').value = '';
+    seletorRenderSidebar();
+    seletorPaint();
+  }
+}
+
+function seletorLimparCampos() {
+  document.getElementById('seletor-inp-nome').value = '';
+  document.getElementById('seletor-inp-meta').value = '';
+  document.getElementById('seletor-inp-tipo').value = 'vendedor';
+  seletorTipoChange();
+}
+
+function seletorEditarRegiao(i) {
+  selModoEd = i;
+  selSel = new Set(selRegs[i].cids);
+  document.getElementById('seletor-inp-nome').value = selRegs[i].nome;
+  document.getElementById('seletor-inp-cor').value = selRegs[i].cor;
+  document.getElementById('seletor-inp-tipo').value = selRegs[i].tipo || 'vendedor';
+  document.getElementById('seletor-inp-meta').value = selRegs[i].meta ? 'R$ ' + selRegs[i].meta.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) : '';
+  seletorTipoChange();
+  document.getElementById('seletor-botpanel').classList.add('em');
+  document.getElementById('seletor-bptitle').textContent = '✏️ EDITANDO: ' + selRegs[i].nome.toUpperCase();
+  document.getElementById('seletor-bptitle').classList.add('em');
+  // Atualizar botão injetado (Nova Visão) ou botão original
+  const btnInj = document.getElementById('seletor-btn-salvar-inj');
+  const btnOrig = document.getElementById('seletor-btn-salvar');
+  const btnCancelInj = document.getElementById('seletor-btn-cancel-inj');
+  const btnCancelOrig = document.getElementById('seletor-btn-cancel');
+  if (btnInj) { btnInj.textContent = '✅ Confirmar edição'; }
+  if (btnOrig) { btnOrig.textContent = '✅ Confirmar edição'; }
+  if (btnCancelInj) { btnCancelInj.style.display = ''; }
+  if (btnCancelOrig) { btnCancelOrig.style.display = ''; }
+  seletorRenderPaleta();
+  seletorRenderSidebar();
+  seletorPaint();
+}
+
+function seletorCancelarEd() {
+  selModoEd = null; selSel.clear();
+  seletorLimparCampos();
+  document.getElementById('seletor-botpanel').classList.remove('em');
+  document.getElementById('seletor-bptitle').textContent = 'NOVA REGIÃO';
+  document.getElementById('seletor-bptitle').classList.remove('em');
+  const btnInj = document.getElementById('seletor-btn-salvar-inj');
+  const btnOrig = document.getElementById('seletor-btn-salvar');
+  const btnCancelInj = document.getElementById('seletor-btn-cancel-inj');
+  const btnCancelOrig = document.getElementById('seletor-btn-cancel');
+  if (btnInj) btnInj.textContent = '💾 Salvar região';
+  if (btnOrig) btnOrig.textContent = '💾 Salvar região';
+  if (btnCancelInj) btnCancelInj.style.display = 'none';
+  if (btnCancelOrig) btnCancelOrig.style.display = 'none';
+  seletorRenderSidebar();
+  seletorPaint();
+}
+
+function seletorLimpar() {
+  if (selModoEd !== null) selSel = new Set(selRegs[selModoEd].cids);
+  else selSel.clear();
+  seletorPaint();
+}
+
+function seletorDelRegiao(i) {
+  if (selModoEd === i) seletorCancelarEd();
+  selRegs.splice(i, 1);
+  seletorRenderSidebar();
+  seletorPaint();
+}
+
+function seletorRenderSidebar() {
+  const l = document.getElementById('seletor-rlist');
+  if (!selRegs.length) {
+    l.innerHTML = '<div class="sel-empty">Nenhuma região.<br>Clique nas cidades para selecionar.</div>';
+    document.getElementById('seletor-tot').textContent = '0 hab';
+    return;
+  }
+  l.innerHTML = selRegs.map((r, i) => {
+    const ehNaoAtend = r.tipo === 'naoatendida';
+    const metaLabel = ehNaoAtend ? 'Potencial' : 'Meta';
+    const metaStr = r.meta ? `<div class="sel-rsub" style="color:${ehNaoAtend?'#f0a500':'#2ea043'};font-weight:600;">${ehNaoAtend?'📍':'🎯'} ${metaLabel}: ${seletorMoedaStr(r.meta)}</div>` : '';
+    return `
+    <div class="sel-rcard${selModoEd===i?' editing':''}" style="border-left:3px solid ${r.cor}">
+      <div class="sel-rch">
+        <div class="sel-rdot" style="background:${r.cor}"></div>
+        <span class="sel-rnm${selModoEd===i?' ed':''}">${r.nome}</span>
+        <div class="sel-rbts">
+          <button class="sel-rbt" style="background:#d29922;color:#000" onclick="seletorEditarRegiao(${i})">✏️</button>
+          <button class="sel-rbt" style="background:#da3633;color:#fff" onclick="seletorDelRegiao(${i})">✕</button>
+        </div>
+      </div>
+      <div class="sel-rpop">${r.pop.toLocaleString('pt-BR')} hab</div>
+      <div class="sel-rsub">${r.cids.size} cidade${r.cids.size!==1?'s':''}</div>
+      ${metaStr}
+    </div>`;
+  }).join('');
+  document.getElementById('seletor-tot').textContent =
+    selRegs.reduce((s,r)=>s+r.pop,0).toLocaleString('pt-BR') + ' hab';
+}
+
+function seletorRenderPaleta() {
+  const cor = document.getElementById('seletor-inp-cor').value;
+  document.getElementById('seletor-palette').innerHTML = SEL_PALETTE.map(p =>
+    `<div class="sel-pcol${p===cor?' ativo':''}" style="background:${p}" onclick="seletorSetCor('${p}')"></div>`
+  ).join('');
+}
+
+function seletorSetCor(c) {
+  document.getElementById('seletor-inp-cor').value = c;
+  seletorRenderPaleta();
+  seletorPaint();
+}
+
+function seletorBuscar(q) {
+  const qu = q.trim().toUpperCase();
+  Object.entries(selEls).forEach(([nome, el]) => {
+    if (qu && nome.toUpperCase().includes(qu)) {
+      el.style.stroke = '#ffd700';
+      el.style.strokeWidth = '1.8';
+    } else {
+      // será sobrescrito pelo paint, mas reset aqui
+    }
+  });
+  if (qu) {
+    Object.entries(selEls).forEach(([nome, el]) => {
+      if (nome.toUpperCase().includes(qu)) {
+        el.style.stroke = '#ffd700';
+        el.style.strokeWidth = '2';
+      }
+    });
+  } else {
+    seletorPaint();
+  }
+}
+
+
+function criarFaviconDoMapa() {
+  const svg = document.querySelector('#mapa-container svg');
+  if (!svg || !allMuns.length) return;
+
+  const SIZE = 64;
+  const canvas = document.createElement('canvas');
+  canvas.width = SIZE; canvas.height = SIZE;
+  const ctx = canvas.getContext('2d');
+
+  const vbParts = (svg.getAttribute('viewBox') || '0 0 960 636').split(' ').map(Number);
+  const [,,vw,vh] = vbParts;
+  const pad = 3;
+  const scale = Math.min((SIZE - pad*2) / vw, (SIZE - pad*2) / vh);
+  const offsetX = (SIZE - vw*scale) / 2;
+  const offsetY = (SIZE - vh*scale) / 2;
+
+  // ── Encontrar apenas arestas externas (aparecem 1 única vez) ──
+  const edgeCount = new Map();
+  allMuns.forEach(el => {
+    const pts = (el.getAttribute('points')||'').trim().split(/\s+/)
+      .map(p => p.split(',').map(Number))
+      .filter(p => p.length===2 && !isNaN(p[0]));
+    if (pts.length < 3) return;
+    for (let i = 0; i < pts.length; i++) {
+      const a = pts[i], b = pts[(i+1) % pts.length];
+      // Arredondar para evitar imprecisão de float
+      const ax = Math.round(a[0]*10)/10, ay = Math.round(a[1]*10)/10;
+      const bx = Math.round(b[0]*10)/10, by = Math.round(b[1]*10)/10;
+      const key = ax<bx||(ax===bx&&ay<by)
+        ? `${ax},${ay}|${bx},${by}`
+        : `${bx},${by}|${ax},${ay}`;
+      edgeCount.set(key, (edgeCount.get(key)||0)+1);
+    }
+  });
+
+  // ── Fundo escuro ──
+  ctx.clearRect(0,0,SIZE,SIZE);
+  ctx.fillStyle = '#0d1f35';
+  ctx.fillRect(0,0,SIZE,SIZE);
+
+  // ── Silhueta suave como base ──
+  ctx.save();
+  allMuns.forEach(el => {
+    const pts = (el.getAttribute('points')||'').trim().split(/\s+/)
+      .map(p => p.split(',').map(Number)).filter(p=>p.length===2);
+    if (pts.length<3) return;
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0]*scale+offsetX, pts[0][1]*scale+offsetY);
+    pts.slice(1).forEach(p=>ctx.lineTo(p[0]*scale+offsetX, p[1]*scale+offsetY));
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(44,143,214,0.18)';
+    ctx.fill();
+  });
+  ctx.restore();
+
+  // ── Desenhar só as arestas externas ──
+  ctx.strokeStyle = '#5bb8f5';
+  ctx.lineWidth = 1.2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.shadowColor = 'rgba(91,184,245,0.6)';
+  ctx.shadowBlur = 2;
+
+  edgeCount.forEach((count, key) => {
+    if (count !== 1) return;
+    const [p1,p2] = key.split('|').map(s=>s.split(',').map(Number));
+    ctx.beginPath();
+    ctx.moveTo(p1[0]*scale+offsetX, p1[1]*scale+offsetY);
+    ctx.lineTo(p2[0]*scale+offsetX, p2[1]*scale+offsetY);
+    ctx.stroke();
+  });
+
+  let link = document.querySelector("link[rel~='icon']");
+  if (!link) { link=document.createElement('link'); link.rel='icon'; document.head.appendChild(link); }
+  link.type='image/png';
+  link.href=canvas.toDataURL('image/png');
+}
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('seletor-inp-cor').addEventListener('input', () => {
+    seletorRenderPaleta(); seletorPaint();
+  });
+  document.getElementById('seletor-inp-nome').addEventListener('keydown', e => {
+    if (e.key === 'Enter') seletorSalvar();
+  });
+});
+
+
+function seletorSalvarEAplicar() {
+  // Se nova visão, tratar diferente
+  if (selChaveAtiva === '__nova__') {
+    seletorCriarNovaVisao();
+    return;
+  }
+  // Se visão custom existente, atualizar regiões sem tocar em fills
+  if (selChaveAtiva.startsWith('custom_')) {
+    if (selModoEd !== null) {
+      const nome = document.getElementById('seletor-inp-nome').value.trim() || selRegs[selModoEd].nome;
+      const cor  = document.getElementById('seletor-inp-cor').value;
+      const tipo = document.getElementById('seletor-inp-tipo').value;
+      const meta = seletorParseMoeda(document.getElementById('seletor-inp-meta').value);
+      const pop  = [...selSel].reduce((s,n) => s + (popCidades[n]||0), 0);
+      selRegs[selModoEd] = { nome, cor, cids: new Set(selSel), pop, meta, tipo };
+      selModoEd = null;
+    }
+    if (window._customVisoes && window._customVisoes[selChaveAtiva]) {
+      window._customVisoes[selChaveAtiva].regioes = selRegs.map(r => ({
+        nome: r.nome, cor: r.cor, cids: new Set(r.cids), pop: r.pop, meta: r.meta||0, tipo: r.tipo||'vendedor'
+      }));
+      salvarVisoesLS();
+      // Persistir edição no Supabase
+      supabaseSalvarVisao(selChaveAtiva, window._customVisoes[selChaveAtiva]);
+      // Atualizar população/cidades no card
+      const todasCids = new Set();
+      selRegs.forEach(r => r.cids.forEach(c => todasCids.add(c)));
+      const popTotal = [...todasCids].reduce((s,n) => s + (popCidades[n]||0), 0);
+      const card = document.querySelector(`.card[data-chave="${selChaveAtiva}"]`);
+      if (card) {
+        card.querySelector('.card-value').textContent = popTotal.toLocaleString('pt-BR');
+        card.querySelector('.card-sub').textContent = `hab · ${todasCids.size} cidades`;
+      }
+    }
+    destacarPorChave(selChaveAtiva);
+    fecharSeletor();
+    return;
+  }
+  // Se está em modo edição, confirmar a edição primeiro
+  if (selModoEd !== null) {
+    const nome = document.getElementById('seletor-inp-nome').value.trim() || selRegs[selModoEd].nome;
+    const cor  = document.getElementById('seletor-inp-cor').value;
+    const pop  = [...selSel].reduce((s,n) => s + (popCidades[n]||0), 0);
+    selRegs[selModoEd] = { nome, cor, cids: new Set(selSel), pop };
+    selModoEd = null;
+  }
+  // Aplicar ao mapa e fechar
+  if (!selRegs.length) { fecharSeletor(); return; }
+  seletorAplicarAoMapa();
+  fecharSeletor();
+}
+
+function seletorCriarNovaVisao() {
+  // Auto-salvar seleção pendente como região
+  if (selSel.size > 0 && selModoEd === null) {
+    const nome = document.getElementById('seletor-inp-nome').value.trim() || ('Região ' + (selRegs.length + 1));
+    const cor  = document.getElementById('seletor-inp-cor').value;
+    const tipo = document.getElementById('seletor-inp-tipo').value;
+    const meta = seletorParseMoeda(document.getElementById('seletor-inp-meta').value);
+    const pop  = [...selSel].reduce((s,n) => s + (popCidades[n]||0), 0);
+    selRegs.push({ nome, cor, cids: new Set(selSel), pop, meta, tipo });
+    selSel.clear();
+  }
+
+  if (!selRegs.length) { alert('Defina pelo menos uma região.'); return; }
+
+  const nomeVisao = prompt('Nome da nova visão:', selRegs[0].nome) || selRegs[0].nome;
+  const chaveNova = 'custom_' + Date.now();
+  const todasCids = new Set();
+  selRegs.forEach(r => r.cids.forEach(c => todasCids.add(c)));
+  const popTotal  = [...todasCids].reduce((s,n) => s + (popCidades[n]||0), 0);
+
+  // Salvar — NUNCA toca em setAttribute('fill')
+  if (!window._customVisoes) window._customVisoes = {};
+  window._customVisoes[chaveNova] = {
+    nome: nomeVisao,
+    regioes: selRegs.map(r => ({ nome: r.nome, cor: r.cor, cids: new Set(r.cids), pop: r.pop, meta: r.meta||0, tipo: r.tipo||'vendedor' }))
+  };
+  VISAO_NOME[chaveNova] = nomeVisao;
+  VISAO_COR[chaveNova]  = selRegs[0].cor;
+
+  criarCardNovaVisao(chaveNova, nomeVisao, selRegs[0].cor, popTotal, todasCids.size);
+  salvarVisoesLS();
+  // Persistir no Supabase (compartilhado)
+  supabaseSalvarVisao(chaveNova, window._customVisoes[chaveNova]).then(ok => {
+    if (!ok) console.warn('Visão salva localmente, mas não no Supabase.');
+  });
+
+  document.getElementById('seletor-btn-confirmar').textContent = '✅ Confirmar edição';
+  fecharSeletor();
+}
+
+function criarCardNovaVisao(chave, nome, cor, pop, numCids) {
+  const grid = document.querySelector('.cards-grid');
+  if (!grid) return;
+
+  // Cor accent: gradiente multi-região ou cor única
+  const cv = window._customVisoes && window._customVisoes[chave];
+  let accent = cor;
+  if (cv && cv.regioes.length > 1) {
+    const total = cv.regioes.reduce((s,r) => s + r.cids.size, 0) || 1;
+    const stops = cv.regioes.map((r,i,arr) => {
+      const p1 = (arr.slice(0,i).reduce((s,x)=>s+x.cids.size,0)/total*100).toFixed(1);
+      const p2 = (arr.slice(0,i+1).reduce((s,x)=>s+x.cids.size,0)/total*100).toFixed(1);
+      return `${r.cor} ${p1}% ${p2}%`;
+    }).join(', ');
+    accent = `linear-gradient(90deg,${stops})`;
+    // Injetar style para barra ::before
+    const styleEl = document.createElement('style');
+    styleEl.textContent = `[data-chave="${chave}"]::before{background:${accent}!important;}`;
+    document.head.appendChild(styleEl);
+  }
+
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.setAttribute('data-chave', chave);
+  card.style.setProperty('--accent', cor);
+  card.innerHTML = `
+    <div class="card-label">${nome}</div>
+    <div class="card-value">${pop.toLocaleString('pt-BR')}</div>
+    <div class="card-sub">hab · ${numCids} cidades</div>`;
+
+  card.addEventListener('click', () => {
+    if (travadoTerr === chave) {
+      // Toggle off
+      travadoTerr = null;
+      document.querySelectorAll('.card').forEach(c => c.classList.remove('ativo'));
+      document.getElementById('btn-print').style.display = 'none';
+      document.getElementById('btn-excel').style.display = 'none';
+      resetCores();
+    } else {
+      travadoTerr = chave;
+      document.querySelectorAll('.card').forEach(c => c.classList.remove('ativo'));
+      card.classList.add('ativo');
+      document.getElementById('btn-print').style.display = 'flex';
+      document.getElementById('btn-excel').style.display = 'flex';
+      destacarPorChave(chave);
+    }
+  });
+  // Hover preview (igual aos cards originais)
+  card.addEventListener('mouseenter', () => { if(travadoTerr) return; destacarPorChave(chave); });
+  card.addEventListener('mouseleave', () => { if(travadoTerr) return; resetCores(); });
+  // Duplo clique → excluir visão custom (pede senha)
+  card.addEventListener('dblclick', () => {
+    pedirSenha(() => {
+      if (!confirm(`Excluir a visão "${nome}"? Esta ação não pode ser desfeita.`)) return;
+      delete window._customVisoes[chave];
+      delete VISAO_NOME[chave];
+      delete VISAO_COR[chave];
+      salvarVisoesLS();
+      // Excluir do Supabase (compartilhado)
+      supabaseExcluirVisao(chave);
+      if (travadoTerr === chave) { travadoTerr = null; resetCores();
+        document.getElementById('btn-print').style.display = 'none';
+        document.getElementById('btn-excel').style.display = 'none';
+      }
+      card.remove();
+    });
+  });
+  grid.appendChild(card);
+}
+
+function seletorConfirmar() {
+  if (!selRegs.length) {
+    if (!confirm('Nenhuma região definida. Confirmar limpará a visão. Continuar?')) return;
+  }
+
+  // Aplicar de volta ao mapa principal
+  seletorAplicarAoMapa();
+
+  fecharSeletor();
+}
+
+function seletorAplicarAoMapa() {
+  const chave = selChaveAtiva;
+
+  if (chave === 'rabele-fleisch-hoje') {
+    // Atualizar cidadesRabeleFleischHoje
+    const todasCids = new Set();
+    selRegs.forEach(r => r.cids.forEach(c => todasCids.add(c)));
+    // Reconstruir o set global
+    cidadesRabeleFleischHoje.clear();
+    todasCids.forEach(c => cidadesRabeleFleischHoje.add(c));
+
+  } else if (chave === 'fleisch-rabele') {
+    // Atualizar cidadesFleischmannRabele (parte extra além do azul)
+    const todasCids = new Set();
+    selRegs.forEach(r => r.cids.forEach(c => todasCids.add(c)));
+    // Cidades que eram azuis originais (rabele) permanecem, adicionamos o resto
+    const azuisOriginais = new Set(allMuns
+      .filter(el => el.getAttribute('fill') === '#3498DB')
+      .map(el => el.getAttribute('data-cidade')));
+    cidadesFleischmannRabele.clear();
+    todasCids.forEach(c => {
+      if (!azuisOriginais.has(c)) cidadesFleischmannRabele.add(c);
+    });
+    // Adicionar também as azuis que estão no set
+    todasCids.forEach(c => cidadesFleischmannRabele.add(c));
+
+  } else if (chave === 'coferpan') {
+    // Para coferpan: remapear fill das cidades no SVG
+    // Cidades na visão = #3498DB ou #9E9E9E exceto excluídas
+    // Ao editar coferpan, tratamos como: adicionar/remover de excluídas
+    const todasCids = new Set();
+    selRegs.forEach(r => r.cids.forEach(c => todasCids.add(c)));
+    // As cidades do coferpan são as de fill #3498DB ou #9E9E9E
+    // Excluídas = as que estavam no conjunto original mas saíram
+    const originais = new Set(allMuns
+      .filter(el => el.getAttribute('fill')==='#3498DB' || el.getAttribute('fill')==='#9E9E9E')
+      .map(el => el.getAttribute('data-cidade')));
+    coferpanExcluir.clear();
+    originais.forEach(c => { if (!todasCids.has(c)) coferpanExcluir.add(c); });
+
+  } else if (chave === 'coferpan-apos') {
+    // Usar set de override — não toca em setAttribute
+    const todasCids = new Set();
+    selRegs.forEach(r => r.cids.forEach(c => todasCids.add(c)));
+    if (!window._overrideApos) window._overrideApos = new Set();
+    window._overrideApos.clear();
+    // Guardar quais cidades #9E9E9E foram removidas
+    allMuns.filter(el => el.getAttribute('fill')==='#9E9E9E')
+           .forEach(el => {
+             const c = el.getAttribute('data-cidade');
+             if (!todasCids.has(c)) window._overrideApos.add(c);
+           });
+
+  } else if (chave === 'fermisul') {
+    // Usar set de override — não toca em setAttribute
+    const todasCids = new Set();
+    selRegs.forEach(r => r.cids.forEach(c => todasCids.add(c)));
+    if (!window._overrideFermisul) window._overrideFermisul = { add: new Set(), rem: new Set() };
+    window._overrideFermisul.add.clear(); window._overrideFermisul.rem.clear();
+    allMuns.forEach(el => {
+      const c = el.getAttribute('data-cidade');
+      const f = el.getAttribute('fill');
+      if (todasCids.has(c) && f !== '#85C1A0') window._overrideFermisul.add.add(c);
+      else if (!todasCids.has(c) && f === '#85C1A0') window._overrideFermisul.rem.add(c);
+    });
+
+  } else if (chave === 'rabele') {
+    // Usar set de override — não toca em setAttribute
+    const todasCids = new Set();
+    selRegs.forEach(r => r.cids.forEach(c => todasCids.add(c)));
+    if (!window._overrideRabele) window._overrideRabele = { add: new Set(), rem: new Set() };
+    window._overrideRabele.add.clear(); window._overrideRabele.rem.clear();
+    allMuns.forEach(el => {
+      const c = el.getAttribute('data-cidade');
+      const f = el.getAttribute('fill');
+      if (todasCids.has(c) && f !== '#3498DB') window._overrideRabele.add.add(c);
+      else if (!todasCids.has(c) && f === '#3498DB') window._overrideRabele.rem.add(c);
+    });
+  }
+
+  // Recalcular totais e atualizar cards
+  atualizarCards();
+
+  // Reativar destaque da visão
+  destacarPorChave(chave);
+}
+
+function atualizarCards() {
+  // Recalcula população e contagem de cidades para cada card
+  const calcVis = (pred) => {
+    const muns = allMuns.filter(el => pred(el.getAttribute('fill'), el.getAttribute('data-cidade')));
+    return {
+      pop: muns.reduce((s,el) => s + (popCidades[el.getAttribute('data-cidade')]||0), 0),
+      cnt: muns.length
+    };
+  };
+  const vis = {
+    'coferpan': calcVis((f,c) => (f==='#3498DB'||f==='#9E9E9E')&&!coferpanExcluir.has(c)),
+    'fermisul': calcVis(f => f==='#85C1A0'),
+    'rabele-fleisch-hoje': calcVis((f,c) => cidadesRabeleFleischHoje.has(c)),
+    'rabele': calcVis(f => f==='#3498DB'),
+    'fleisch-rabele': calcVis((f,c) => f==='#3498DB'||cidadesFleischmannRabele.has(c)),
+    'coferpan-apos': calcVis(f => f==='#9E9E9E')
+  };
+  Object.entries(vis).forEach(([chave, {pop, cnt}]) => {
+    const card = document.querySelector(`[data-chave="${chave}"]`);
+    if (!card) return;
+    card.querySelector('.card-value').textContent = pop.toLocaleString('pt-BR');
+    card.querySelector('.card-sub').textContent = `hab · ${cnt} cidades`;
+  });
+}
+
+function fecharSeletor() {
+  document.getElementById('seletor-overlay').classList.remove('aberto');
+  document.getElementById('seletor-tip').style.display = 'none';
+}
+
+function seletorFechar() {
+  fecharSeletor();
+  // Restaurar estado visual da visão ativa
+  if (travadoTerr) destacarPorChave(travadoTerr);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('seletor-overlay').classList.contains('aberto')) {
+    seletorFechar();
+  }
+});
+
 </script>
 </body>
 </html>
