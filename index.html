@@ -1405,9 +1405,7 @@ function imprimirMapa(modo) {
   const nome = (travadoTerr && travadoTerr.startsWith('custom_'))
     ? (VISAO_NOME[travadoTerr] || 'Mapa de Territórios')
     : (nomes[travadoTerr] || 'Mapa de Territórios');
-  const sufixo = (travadoTerr && travadoTerr.startsWith('custom_'))
-    ? (modo === 'sintetico' ? ' (Resumo)' : '') : '';
-  document.getElementById('print-title').textContent = nome + sufixo;
+  document.getElementById('print-title').textContent = nome;
 
   // Sintético: esconder labels de vendedor no mapa
   if (modo === 'sintetico') {
@@ -1447,7 +1445,31 @@ function gerarLegendaPrint(modo) {
   document.body.classList.remove('print-com-legenda');
   box.innerHTML = '';
 
-  if (!travadoTerr || !travadoTerr.startsWith('custom_')) return;
+  if (!travadoTerr) return;
+
+  // ── Visões NATIVAS: legenda simples (total de cidades + habitantes) ──
+  if (!travadoTerr.startsWith('custom_')) {
+    // Contar cidades destacadas (não apagadas) e somar população
+    const visiveis = allMuns.filter(el => !el.classList.contains('mun-apagado'));
+    const numCids = visiveis.length;
+    const popTotal = visiveis.reduce((s,el) => s + (popCidades[el.getAttribute('data-cidade')]||0), 0);
+    box.innerHTML = `
+      <div class="pl-wrap pl-sintetico">
+        <div class="pl-totais">
+          <div class="pl-tr pl-tr-geral">
+            <span>Total de cidades</span>
+            <span class="pl-tv"><b>${numCids.toLocaleString('pt-BR')}</b></span>
+          </div>
+          <div class="pl-tr pl-tr-geral">
+            <span>Total de habitantes</span>
+            <span class="pl-tv"><b>${popTotal.toLocaleString('pt-BR')} hab</b></span>
+          </div>
+        </div>
+      </div>`;
+    document.body.classList.add('print-com-legenda', 'print-legenda-curta');
+    return;
+  }
+
   const cv = window._customVisoes && window._customVisoes[travadoTerr];
   if (!cv || !cv.regioes || !cv.regioes.length) return;
 
