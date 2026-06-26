@@ -92,6 +92,14 @@ header{
   grid-template-columns:repeat(auto-fill,minmax(175px,1fr));
   gap:7px;
 }
+.cards-grid.reordenando .card{
+  cursor:grab;
+  outline:1.5px dashed rgba(210,153,34,0.6);
+  outline-offset:1px;
+}
+.cards-grid.reordenando .card:active{cursor:grabbing;}
+.card.arrastando{opacity:0.45;transform:scale(0.97);}
+
 .card{
   background:var(--card-bg);
   border:1px solid var(--card-border);
@@ -236,7 +244,7 @@ header{
 }
 
 @media print {
-  header, footer, #btn-print, #btn-excel, .theme-btn, #modal-regiao, #legenda-territorios, #btn-seletor, #seletor-overlay, #menu-impressao { display: none !important; }
+  header, footer, #btn-print, #btn-excel, .theme-btn, #modal-regiao, #legenda-territorios, #btn-seletor, #seletor-overlay, #menu-impressao, #btn-config, #menu-config, #barra-reordenar { display: none !important; }
   #print-title { display: block !important; position: fixed; top: 14px; left: 0; right: 0; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 21px; font-weight: 700; letter-spacing: .5px; color: #14406b; z-index: 100000; }
   #print-footer { display: block !important; position: fixed; bottom: 7px; left: 0; right: 0; text-align: center; font-size: 8.5px; color: #c0c4ca; z-index: 100000; font-family: 'Inter', sans-serif; }
   #mapa-wrapper { position: fixed !important; top: 30px !important; left: 0 !important; right: 0 !important; bottom: 25px !important; height: auto !important; }
@@ -367,8 +375,16 @@ header{
     <div style="display:flex;align-items:center;gap:8px;">
     <button id="btn-excel" onclick="exportarExcel()" style="display:none;background:rgba(39,174,96,0.15);border:1px solid rgba(39,174,96,0.35);border-radius:20px;padding:5px 14px;cursor:pointer;color:rgba(255,255,255,0.8);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;align-items:center;gap:5px;">📊 Exportar</button>
     <button id="btn-print" onclick="abrirMenuImpressao()" style="display:none;background:rgba(52,152,219,0.15);border:1px solid rgba(52,152,219,0.35);border-radius:20px;padding:5px 14px;cursor:pointer;color:rgba(255,255,255,0.8);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;align-items:center;gap:5px;">🖨️ Imprimir</button>
-    <button id="btn-nova-visao" onclick="pedirSenhaENovaVisao()" style="background:rgba(46,160,67,0.18);border:1px solid rgba(46,160,67,0.45);border-radius:20px;padding:5px 14px;cursor:pointer;color:rgba(255,255,255,0.85);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;display:flex;align-items:center;gap:5px;transition:all .2s;" onmouseover="this.style.background='rgba(46,160,67,0.35)'" onmouseout="this.style.background='rgba(46,160,67,0.18)'">＋ Nova Visão</button>
-    <button id="btn-seletor" onclick="pedirSenhaEAbrir()" style="background:rgba(155,89,182,0.18);border:1px solid rgba(155,89,182,0.45);border-radius:20px;padding:5px 14px;cursor:pointer;color:rgba(255,255,255,0.85);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;display:flex;align-items:center;gap:5px;transition:all .2s;" onmouseover="this.style.background='rgba(155,89,182,0.35)'" onmouseout="this.style.background='rgba(155,89,182,0.18)'">✏️ Editar Regiões</button>
+
+    <!-- Engrenagem discreta (abre menu de edição após senha) -->
+    <div style="position:relative;display:inline-block;">
+      <button id="btn-config" onclick="abrirMenuConfig()" title="Configurações" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:50%;width:30px;height:30px;cursor:pointer;color:rgba(255,255,255,0.45);font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .2s;padding:0;" onmouseover="this.style.color='rgba(255,255,255,0.8)';this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.color='rgba(255,255,255,0.45)';this.style.background='rgba(255,255,255,0.06)'">⚙️</button>
+      <div id="menu-config" style="display:none;position:absolute;right:0;top:38px;background:#161b22;border:1px solid #30363d;border-radius:10px;padding:6px;box-shadow:0 8px 28px rgba(0,0,0,.5);z-index:14000;min-width:170px;">
+        <button onclick="configNovaVisao()" style="width:100%;text-align:left;background:none;border:none;color:#e6edf3;padding:9px 12px;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;display:flex;align-items:center;gap:8px;transition:background .15s;" onmouseover="this.style.background='rgba(46,160,67,0.2)'" onmouseout="this.style.background='none'">＋ Nova Visão</button>
+        <button onclick="configEditarRegioes()" style="width:100%;text-align:left;background:none;border:none;color:#e6edf3;padding:9px 12px;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;display:flex;align-items:center;gap:8px;transition:background .15s;" onmouseover="this.style.background='rgba(155,89,182,0.2)'" onmouseout="this.style.background='none'">✏️ Editar Regiões</button>
+        <button onclick="configReordenar()" style="width:100%;text-align:left;background:none;border:none;color:#e6edf3;padding:9px 12px;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;display:flex;align-items:center;gap:8px;transition:background .15s;" onmouseover="this.style.background='rgba(210,153,34,0.2)'" onmouseout="this.style.background='none'">⇅ Reordenar Abas</button>
+      </div>
+    </div>
     <button class="theme-btn" id="theme-toggle" onclick="toggleTheme()">🌙 Escuro</button>
   </div>
   </div>
@@ -389,7 +405,7 @@ header{
       <div class="card-sub">hab · 106 cidades</div>
     </div>
     <div class="card" id="card-rabele"             style="--accent:#3498DB" data-chave="rabele">
-      <div class="card-label">Expansão proposta Rabele</div>
+      <div class="card-label">Expansão Fleischmann</div>
       <div class="card-value">1.571.464</div>
       <div class="card-sub">hab · 55 cidades</div>
     </div>
@@ -409,28 +425,6 @@ header{
 <div id="print-title" style="display:none;"></div>
 <div id="print-legenda" style="display:none;"></div>
 
-<!-- MENU DE ESCOLHA DE IMPRESSÃO -->
-<div id="menu-impressao" style="display:none;position:fixed;inset:0;z-index:15000;background:rgba(0,0,0,0.55);backdrop-filter:blur(3px);align-items:center;justify-content:center;" onclick="if(event.target===this)fecharMenuImpressao()">
-  <div style="background:#fff;border-radius:16px;padding:26px 28px;max-width:440px;width:90%;box-shadow:0 12px 48px rgba(0,0,0,.35);font-family:'Inter',sans-serif;">
-    <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:#14406b;margin-bottom:4px;letter-spacing:.3px;">Escolha o tipo de relatório</div>
-    <div style="font-size:12.5px;color:#888;margin-bottom:18px;">Selecione como deseja imprimir esta visão</div>
-    <button onclick="imprimirMapa('analitico')" style="width:100%;text-align:left;background:#f7f9fb;border:1.5px solid #e3e8ee;border-radius:12px;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:all .15s;display:flex;align-items:flex-start;gap:12px;" onmouseover="this.style.borderColor='#3498db';this.style.background='#eef6fc'" onmouseout="this.style.borderColor='#e3e8ee';this.style.background='#f7f9fb'">
-      <span style="font-size:22px;line-height:1;">📊</span>
-      <span>
-        <span style="display:block;font-weight:700;font-size:14px;color:#1f2430;margin-bottom:2px;">Analítico</span>
-        <span style="display:block;font-size:11.5px;color:#777;line-height:1.4;">Mapa com nomes dos vendedores, tabela detalhada por região e totais gerais.</span>
-      </span>
-    </button>
-    <button onclick="imprimirMapa('sintetico')" style="width:100%;text-align:left;background:#f7f9fb;border:1.5px solid #e3e8ee;border-radius:12px;padding:14px 16px;margin-bottom:6px;cursor:pointer;transition:all .15s;display:flex;align-items:flex-start;gap:12px;" onmouseover="this.style.borderColor='#27ae60';this.style.background='#eefaf2'" onmouseout="this.style.borderColor='#e3e8ee';this.style.background='#f7f9fb'">
-      <span style="font-size:22px;line-height:1;">📄</span>
-      <span>
-        <span style="display:block;font-weight:700;font-size:14px;color:#1f2430;margin-bottom:2px;">Sintético</span>
-        <span style="display:block;font-size:11.5px;color:#777;line-height:1.4;">Mapa limpo, apenas com as cores das regiões e os totais consolidados.</span>
-      </span>
-    </button>
-    <button onclick="fecharMenuImpressao()" style="width:100%;background:none;border:none;color:#999;font-size:12px;padding:8px;cursor:pointer;margin-top:4px;font-family:'Inter',sans-serif;">Cancelar</button>
-  </div>
-</div>
 <div id="print-footer" style="display:none;">© 2026 Rabele Alimentos. All rights reserved.</div>
 <div id="mapa-wrapper">
   <div id="mapa-container"></div>
@@ -901,7 +895,7 @@ const svgTerritorios = `<svg id="mapa-parana" viewBox="0 0 1000 636" xmlns="http
 }
 
 @media print {
-  header, footer, #btn-print, #btn-excel, .theme-btn, #modal-regiao, #legenda-territorios, #menu-impressao { display: none !important; }
+  header, footer, #btn-print, #btn-excel, .theme-btn, #modal-regiao, #legenda-territorios, #menu-impressao, #btn-config, #menu-config, #barra-reordenar { display: none !important; }
   #print-title { display: block !important; position: fixed; top: 14px; left: 0; right: 0; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 21px; font-weight: 700; letter-spacing: .5px; color: #14406b; z-index: 100000; }
   #print-footer { display: block !important; position: fixed; bottom: 7px; left: 0; right: 0; text-align: center; font-size: 8.5px; color: #c0c4ca; z-index: 100000; font-family: 'Inter', sans-serif; }
   #mapa-wrapper { position: fixed !important; top: 42px !important; left: 0 !important; right: 0 !important; bottom: 25px !important; height: auto !important; }
@@ -1387,16 +1381,13 @@ let allMuns = [];
 
 
 function abrirMenuImpressao() {
-  // Visões não-custom: imprime direto (não tem analítico/sintético)
-  if (!travadoTerr || !travadoTerr.startsWith('custom_')) {
-    imprimirMapa('analitico');
-    return;
-  }
-  document.getElementById('menu-impressao').style.display = 'flex';
+  // Sempre imprime no modo sintético (mapa limpo + totais)
+  imprimirMapa('sintetico');
 }
 
 function fecharMenuImpressao() {
-  document.getElementById('menu-impressao').style.display = 'none';
+  const m = document.getElementById('menu-impressao');
+  if (m) m.style.display = 'none';
 }
 
 function imprimirMapa(modo) {
@@ -1407,7 +1398,7 @@ function imprimirMapa(modo) {
     'coferpan': 'Coferpan Total Hoje',
     'fermisul': 'Fermisul',
     'rabele-fleisch-hoje': 'Rabele Fleischmann hoje',
-    'rabele': 'Expansão proposta Rabele',
+    'rabele': 'Expansão Fleischmann',
     'fleisch-rabele': 'Rabele área total',
     'coferpan-apos': 'Sobra de área Coferpan'
   };
@@ -1683,6 +1674,16 @@ window.addEventListener('load', () => {
 
   allMuns = Array.from(document.querySelectorAll('#mapa-container .mun'));
 
+  // Aplicar overrides das nativas do localStorage IMEDIATAMENTE (síncrono),
+  // evitando o flash de branco antes do Supabase responder
+  try {
+    const rawNat = localStorage.getItem('rabele_nativas_overrides_v1');
+    if (rawNat) {
+      aplicarOverridesNativas(JSON.parse(rawNat));
+      aplicarOverridesNoMapaGeral();
+    }
+  } catch(_) {}
+
   // TOOLTIP
   allMuns.forEach(el => {
     el.addEventListener('mouseenter', e => {
@@ -1712,9 +1713,10 @@ window.addEventListener('load', () => {
   // CARDS — hover e clique (SEM abrir modal)
   document.querySelectorAll('.card').forEach(card => {
     const chave = card.getAttribute('data-chave');
-    card.addEventListener('mouseenter', () => { if(travadoTerr) return; destacarPorChave(chave); });
-    card.addEventListener('mouseleave', () => { if(travadoTerr) return; resetCores(); });
+    card.addEventListener('mouseenter', () => { if(modoReordenar || travadoTerr) return; destacarPorChave(chave); });
+    card.addEventListener('mouseleave', () => { if(modoReordenar || travadoTerr) return; resetCores(); });
     card.addEventListener('click', () => {
+      if(modoReordenar) return; // em modo reordenar, clique não ativa visão
       if(travadoTerr === chave) {
         travadoTerr = null;
         document.querySelectorAll('.card').forEach(c => c.classList.remove('ativo'));
@@ -1732,8 +1734,20 @@ window.addEventListener('load', () => {
     });
   });
 
-  // Restaurar visões custom (Supabase → fallback localStorage/fixas)
-  carregarVisoesLS();
+  // Restaurar visões custom (Supabase → fallback localStorage/fixas) e depois aplicar a ordem salva
+  carregarVisoesLS().then(() => {
+    // Aguarda um tick pra garantir que todos os cards (inclusive clone) estão no DOM
+    setTimeout(() => carregarOrdemCards(), 300);
+  });
+
+  // Restaurar edições das 6 visões nativas (Supabase → fallback localStorage)
+  carregarNativasSupabase().then(aplicou => {
+    if (aplicou) {
+      atualizarCards();
+      if (travadoTerr) destacarPorChave(travadoTerr);
+      else aplicarOverridesNoMapaGeral(); // mapa geral reflete as edições
+    }
+  });
 
 });
 
@@ -1747,13 +1761,35 @@ document.getElementById('modal-regiao').addEventListener('click', e => {
 });
 
 function resetCores() {
+  // Construir mapa de overrides (cidade → cor) uma vez, e pintar numa única passada
+  const ovr = coletarMapaOverrides();
   allMuns.forEach(el => {
-    el.style.fill = el.getAttribute('fill');
+    const c = el.getAttribute('data-cidade');
+    el.style.fill = ovr.get(c) || el.getAttribute('fill');
     el.style.stroke = '';
     el.classList.remove('mun-apagado');
   });
   // Remover labels de vendedor
   document.querySelectorAll('.vendedor-label').forEach(e => e.remove());
+}
+
+// Monta um Map(cidade → cor) com as edições das visões nativas
+function coletarMapaOverrides() {
+  const m = new Map();
+  if (window._overrideCoferpanAdd) window._overrideCoferpanAdd.forEach(c => m.set(c, '#9E9E9E'));
+  if (window._overrideAposAdd) window._overrideAposAdd.forEach(c => m.set(c, '#9E9E9E'));
+  if (window._overrideFermisul && window._overrideFermisul.add) window._overrideFermisul.add.forEach(c => m.set(c, '#85C1A0'));
+  if (window._overrideRabele && window._overrideRabele.add) window._overrideRabele.add.forEach(c => m.set(c, '#3498DB'));
+  return m;
+}
+
+// (mantida por compatibilidade — agora resetCores já aplica tudo numa passada)
+function aplicarOverridesNoMapaGeral() {
+  const ovr = coletarMapaOverrides();
+  ovr.forEach((cor, cidade) => {
+    const el = allMuns.find(e => e.getAttribute('data-cidade') === cidade);
+    if (el) el.style.fill = cor;
+  });
 }
 
 function destacar(pred, corOverride) {
@@ -1777,14 +1813,14 @@ function destacarPorChave(chave) {
     return;
   }
   switch(chave) {
-    case 'coferpan':           destacar((f,c) => (f==='#3498DB'||f==='#9E9E9E')&&!coferpanExcluir.has(c), '#9E9E9E'); break;
+    case 'coferpan':           destacar((f,c) => ((f==='#3498DB'||f==='#9E9E9E')&&!coferpanExcluir.has(c)) || (window._overrideCoferpanAdd&&window._overrideCoferpanAdd.has(c)), '#9E9E9E'); break;
     case 'fermisul':           destacar((f,c) => f==='#85C1A0' && !(window._overrideFermisul&&window._overrideFermisul.rem.has(c))
                                             || (window._overrideFermisul&&window._overrideFermisul.add.has(c)), '#85C1A0'); break;
     case 'rabele-fleisch-hoje':destacar((f,c) => cidadesRabeleFleischHoje.has(c), '#9B59B6'); break;
     case 'rabele':             destacar((f,c) => (f==='#3498DB' && !(window._overrideRabele&&window._overrideRabele.rem.has(c)))
                                             || (window._overrideRabele&&window._overrideRabele.add.has(c)), '#3498DB'); break;
     case 'fleisch-rabele':     destacar((f,c) => f==='#3498DB'||cidadesFleischmannRabele.has(c), '#3498DB'); break;
-    case 'coferpan-apos':      destacar((f,c) => f==='#9E9E9E' && !(window._overrideApos&&window._overrideApos.has(c))); break;
+    case 'coferpan-apos':      destacar((f,c) => (f==='#9E9E9E' && !(window._overrideApos&&window._overrideApos.has(c))) || (window._overrideAposAdd&&window._overrideAposAdd.has(c)), '#9E9E9E'); break;
   }
 }
 
@@ -1956,7 +1992,7 @@ function abrirModal(chave) {
   } else if(chave === 'fermisul') {
     cidades = munsDom(); nome='Fermisul'; cor='#85C1A0';
   } else if(chave === 'rabele') {
-    cidades = munsDom(); nome='Expansão proposta Rabele'; cor='#3498DB';
+    cidades = munsDom(); nome='Expansão Fleischmann'; cor='#3498DB';
   } else if(chave === 'coferpan-apos') {
     cidades = munsDom(); nome='Sobra de área Coferpan'; cor='#757575';
   } else if(chave === 'rabele-fleisch-hoje') {
@@ -2065,6 +2101,7 @@ function abrirModalRegiaoCustom(chave, cidade) {
     <div id="seletor-hdr">
       <span id="seletor-hdr-title">✏️ Editar Regiões</span>
       <span id="seletor-visao-nome" style="font-size:12px;color:#8b949e;font-family:Inter,sans-serif;"></span>
+      <input id="seletor-visao-nome-edit" type="text" placeholder="Nome da aba/visão..." style="display:none;background:#0d1117;border:1px solid #30363d;color:#e6edf3;padding:5px 10px;border-radius:6px;font-size:13px;font-weight:600;font-family:Inter,sans-serif;min-width:200px;" />
       <div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;">
         <button class="sel-btn ok" id="seletor-btn-confirmar" onclick="seletorSalvarEAplicar()">✅ Confirmar edição</button>
         <button class="sel-btn sec" onclick="seletorFechar()">✕ Cancelar</button>
@@ -2219,6 +2256,7 @@ async function supabaseCarregarVisoes() {
     const data = await res.json();
     if (!window._customVisoes) window._customVisoes = {};
     (data || []).forEach(row => {
+      if (row.id === NATIVAS_ID || row.id === ORDEM_ID) return; // registros especiais, não são cards
       if (window._customVisoes[row.id]) return; // já existe (não duplicar card)
       window._customVisoes[row.id] = {
         nome: row.nome,
@@ -2259,6 +2297,193 @@ async function supabaseMigrarFixas() {
   } catch(e) { console.warn('Migração fixas:', e); }
 }
 
+// ── Persistência das edições das 6 visões NATIVAS ──
+// Guarda os Sets/overrides num registro especial no Supabase (id 'nativas_overrides')
+const NATIVAS_ID = 'nativas_overrides';
+
+function coletarOverridesNativas() {
+  return {
+    coferpanExcluir: [...coferpanExcluir],
+    overrideCoferpanAdd: window._overrideCoferpanAdd ? [...window._overrideCoferpanAdd] : [],
+    cidadesRabeleFleischHoje: [...cidadesRabeleFleischHoje],
+    cidadesFleischmannRabele: [...cidadesFleischmannRabele],
+    overrideApos: window._overrideApos ? [...window._overrideApos] : [],
+    overrideAposAdd: window._overrideAposAdd ? [...window._overrideAposAdd] : [],
+    overrideFermisul: window._overrideFermisul
+      ? { add: [...window._overrideFermisul.add], rem: [...window._overrideFermisul.rem] } : { add: [], rem: [] },
+    overrideRabele: window._overrideRabele
+      ? { add: [...window._overrideRabele.add], rem: [...window._overrideRabele.rem] } : { add: [], rem: [] }
+  };
+}
+
+function aplicarOverridesNativas(o) {
+  if (!o) return;
+  if (o.coferpanExcluir) { coferpanExcluir.clear(); o.coferpanExcluir.forEach(c => coferpanExcluir.add(c)); }
+  if (o.overrideCoferpanAdd) { window._overrideCoferpanAdd = new Set(o.overrideCoferpanAdd); }
+  if (o.cidadesRabeleFleischHoje) { cidadesRabeleFleischHoje.clear(); o.cidadesRabeleFleischHoje.forEach(c => cidadesRabeleFleischHoje.add(c)); }
+  if (o.cidadesFleischmannRabele) { cidadesFleischmannRabele.clear(); o.cidadesFleischmannRabele.forEach(c => cidadesFleischmannRabele.add(c)); }
+  if (o.overrideApos) { window._overrideApos = new Set(o.overrideApos); }
+  if (o.overrideAposAdd) { window._overrideAposAdd = new Set(o.overrideAposAdd); }
+  if (o.overrideFermisul) { window._overrideFermisul = { add: new Set(o.overrideFermisul.add), rem: new Set(o.overrideFermisul.rem) }; }
+  if (o.overrideRabele) { window._overrideRabele = { add: new Set(o.overrideRabele.add), rem: new Set(o.overrideRabele.rem) }; }
+}
+
+async function salvarNativasSupabase() {
+  // Backup local
+  try { localStorage.setItem('rabele_nativas_overrides_v1', JSON.stringify(coletarOverridesNativas())); } catch(_) {}
+  if (!getSB()) return false;
+  try {
+    const res = await fetch(SB_REST, {
+      method: 'POST',
+      headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({
+        id: NATIVAS_ID,
+        nome: '__overrides_nativas__',
+        regioes: coletarOverridesNativas(),
+        atualizado_em: new Date().toISOString()
+      })
+    });
+    if (!res.ok) { console.warn('Salvar nativas:', res.status); return false; }
+    return true;
+  } catch(e) { console.warn('Salvar nativas (exceção):', e); return false; }
+}
+
+async function carregarNativasSupabase() {
+  // Tenta Supabase; se falhar, usa localStorage
+  if (getSB()) {
+    try {
+      const res = await fetch(SB_REST + '?id=eq.' + NATIVAS_ID + '&select=regioes', { headers: SB_HEADERS });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data[0] && data[0].regioes) {
+          aplicarOverridesNativas(data[0].regioes);
+          return true;
+        }
+      }
+    } catch(e) { console.warn('Carregar nativas (exceção):', e); }
+  }
+  // Fallback localStorage
+  try {
+    const raw = localStorage.getItem('rabele_nativas_overrides_v1');
+    if (raw) { aplicarOverridesNativas(JSON.parse(raw)); return true; }
+  } catch(_) {}
+  return false;
+}
+
+// ── Ordem das abas/cards (registro especial 'card_order') ──
+const ORDEM_ID = 'card_order';
+
+async function salvarOrdemCards() {
+  const grid = document.querySelector('.cards-grid');
+  if (!grid) return false;
+  const ordem = [...grid.querySelectorAll('.card')].map(c => c.getAttribute('data-chave')).filter(Boolean);
+  try { localStorage.setItem('rabele_card_order_v1', JSON.stringify(ordem)); } catch(_) {}
+  if (!getSB()) return false;
+  try {
+    const res = await fetch(SB_REST, {
+      method: 'POST',
+      headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({
+        id: ORDEM_ID, nome: '__card_order__', regioes: ordem,
+        atualizado_em: new Date().toISOString()
+      })
+    });
+    if (!res.ok) { console.warn('Salvar ordem:', res.status); return false; }
+    return true;
+  } catch(e) { console.warn('Salvar ordem (exceção):', e); return false; }
+}
+
+function aplicarOrdemCards(ordem) {
+  if (!Array.isArray(ordem) || !ordem.length) return;
+  const grid = document.querySelector('.cards-grid');
+  if (!grid) return;
+  // Reposicionar cada card na sequência salva; os não listados ficam no fim (ordem atual)
+  ordem.forEach(chave => {
+    const card = grid.querySelector(`.card[data-chave="${chave}"]`);
+    if (card) grid.appendChild(card); // move pro fim, na ordem do array
+  });
+}
+
+async function carregarOrdemCards() {
+  let ordem = null;
+  if (getSB()) {
+    try {
+      const res = await fetch(SB_REST + '?id=eq.' + ORDEM_ID + '&select=regioes', { headers: SB_HEADERS });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data[0] && Array.isArray(data[0].regioes)) ordem = data[0].regioes;
+      }
+    } catch(e) { console.warn('Carregar ordem (exceção):', e); }
+  }
+  if (!ordem) {
+    try { const raw = localStorage.getItem('rabele_card_order_v1'); if (raw) ordem = JSON.parse(raw); } catch(_) {}
+  }
+  if (ordem) aplicarOrdemCards(ordem);
+}
+
+// ── Drag and drop para reordenar (ativado por senha) ──
+let modoReordenar = false;
+
+function ativarReordenar(ativar) {
+  modoReordenar = ativar;
+  const grid = document.querySelector('.cards-grid');
+  if (!grid) return;
+  const cards = [...grid.querySelectorAll('.card')];
+  let barra = document.getElementById('barra-reordenar');
+  if (ativar) {
+    grid.classList.add('reordenando');
+    cards.forEach(card => {
+      card.setAttribute('draggable', 'true');
+      card.addEventListener('dragstart', onDragStart);
+      card.addEventListener('dragover', onDragOver);
+      card.addEventListener('drop', onDrop);
+      card.addEventListener('dragend', onDragEnd);
+    });
+    // Criar barra flutuante de conclusão
+    if (!barra) {
+      barra = document.createElement('div');
+      barra.id = 'barra-reordenar';
+      barra.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:16000;background:#161b22;border:1px solid #d29922;border-radius:30px;padding:10px 20px;box-shadow:0 6px 24px rgba(0,0,0,.5);display:flex;align-items:center;gap:14px;font-family:Inter,sans-serif;';
+      barra.innerHTML = '<span style="color:#e6edf3;font-size:13px;">⇅ Arraste as abas para reordenar</span><button onclick="ativarReordenar(false)" style="background:#d29922;color:#1a1a1a;border:none;border-radius:20px;padding:6px 16px;font-weight:700;font-size:13px;cursor:pointer;font-family:Inter,sans-serif;">✓ Concluir</button>';
+      document.body.appendChild(barra);
+    }
+    barra.style.display = 'flex';
+  } else {
+    grid.classList.remove('reordenando');
+    cards.forEach(card => {
+      card.removeAttribute('draggable');
+      card.removeEventListener('dragstart', onDragStart);
+      card.removeEventListener('dragover', onDragOver);
+      card.removeEventListener('drop', onDrop);
+      card.removeEventListener('dragend', onDragEnd);
+    });
+    if (barra) barra.style.display = 'none';
+    // Salvar a ordem final
+    salvarOrdemCards();
+  }
+}
+
+let _dragCard = null;
+function onDragStart(e) {
+  _dragCard = this;
+  this.classList.add('arrastando');
+  e.dataTransfer.effectAllowed = 'move';
+}
+function onDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  const grid = document.querySelector('.cards-grid');
+  if (!_dragCard || this === _dragCard) return;
+  const rect = this.getBoundingClientRect();
+  const meio = rect.left + rect.width / 2;
+  if (e.clientX < meio) grid.insertBefore(_dragCard, this);
+  else grid.insertBefore(_dragCard, this.nextSibling);
+}
+function onDrop(e) { e.preventDefault(); }
+function onDragEnd() {
+  if (_dragCard) _dragCard.classList.remove('arrastando');
+  _dragCard = null;
+}
 
 
 function salvarVisoesLS() {
@@ -2311,6 +2536,8 @@ async function carregarVisoesLS() {
       const ok = await comTimeout(supabaseCarregarVisoes(), 6000).catch(() => false);
       if (ok) {
         salvarVisoesLS();  // backup local
+        await garantirCloneRabelePotencial();
+        reposicionarCardClone();
         return;
       }
     }
@@ -2318,6 +2545,8 @@ async function carregarVisoesLS() {
     if (typeof VISOES_FIXAS !== 'undefined') aplicar(VISOES_FIXAS);
     const raw = localStorage.getItem(LS_VISOES_KEY);
     if (raw) aplicar(JSON.parse(raw));
+    await garantirCloneRabelePotencial();
+    reposicionarCardClone();
   } catch(e) {
     console.warn('Falha ao carregar visões:', e);
     // Fallback de emergência
@@ -2325,7 +2554,61 @@ async function carregarVisoesLS() {
       if (typeof VISOES_FIXAS !== 'undefined') aplicar(VISOES_FIXAS);
       const raw = localStorage.getItem(LS_VISOES_KEY);
       if (raw) aplicar(JSON.parse(raw));
+      await garantirCloneRabelePotencial();
+      reposicionarCardClone();
     } catch(_) {}
+  }
+}
+
+// ── Clone editável da "Rabele Potencial" ──
+const CLONE_ID = 'custom_clone_rabele_potencial';
+const ORIGEM_CLONE_ID = 'custom_1781613887310'; // id da Rabele Potencial original
+
+async function garantirCloneRabelePotencial() {
+  if (!window._customVisoes) window._customVisoes = {};
+  // Já existe? não recria
+  if (window._customVisoes[CLONE_ID]) return;
+
+  // Fonte do clone: a Rabele Potencial carregada, ou a fixa do HTML
+  let origem = window._customVisoes[ORIGEM_CLONE_ID];
+  if (!origem && typeof VISOES_FIXAS !== 'undefined' && VISOES_FIXAS[ORIGEM_CLONE_ID]) {
+    const f = VISOES_FIXAS[ORIGEM_CLONE_ID];
+    origem = { nome: f.nome, regioes: f.regioes.map(r => ({ ...r, cids: new Set(r.cids) })) };
+  }
+  if (!origem) return; // sem fonte, não clona
+
+  // Criar cópia profunda
+  const clone = {
+    nome: 'Rabele Potencial (cópia)',
+    regioes: origem.regioes.map(r => ({
+      nome: r.nome, cor: r.cor, cids: new Set(r.cids), pop: r.pop,
+      meta: r.meta||0, tipo: r.tipo||'vendedor'
+    }))
+  };
+  window._customVisoes[CLONE_ID] = clone;
+  VISAO_NOME[CLONE_ID] = clone.nome;
+  VISAO_COR[CLONE_ID]  = clone.regioes[0] ? clone.regioes[0].cor : '#3b82f6';
+
+  const todasCids = new Set();
+  clone.regioes.forEach(r => r.cids.forEach(c => todasCids.add(c)));
+  const popTotal = [...todasCids].reduce((s,n) => s + (popCidades[n]||0), 0);
+
+  // Criar card posicionado após "Expansão Fleischmann" (chave 'rabele')
+  criarCardNovaVisao(CLONE_ID, clone.nome, VISAO_COR[CLONE_ID], popTotal, todasCids.size, 'rabele');
+
+  // Persistir no Supabase e localStorage (fica disponível pra todos)
+  salvarVisoesLS();
+  supabaseSalvarVisao(CLONE_ID, clone);
+}
+
+// Garante que o card do clone fique entre "Expansão Fleischmann" e "Rabele área total"
+function reposicionarCardClone() {
+  const grid = document.querySelector('.cards-grid');
+  if (!grid) return;
+  const cardClone = grid.querySelector(`.card[data-chave="${CLONE_ID}"]`);
+  const refExpansao = grid.querySelector('.card[data-chave="rabele"]');
+  if (cardClone && refExpansao && refExpansao.nextSibling !== cardClone) {
+    grid.insertBefore(cardClone, refExpansao.nextSibling);
   }
 }
 
@@ -2342,7 +2625,7 @@ const VISAO_NOME = {
   'coferpan': 'Coferpan Total Hoje',
   'fermisul': 'Fermisul',
   'rabele-fleisch-hoje': 'Rabele Fleischmann hoje',
-  'rabele': 'Expansão proposta Rabele',
+  'rabele': 'Expansão Fleischmann',
   'fleisch-rabele': 'Rabele área total',
   'coferpan-apos': 'Sobra de área Coferpan'
 };
@@ -2371,6 +2654,31 @@ function pedirSenhaEAbrir() {
 function pedirSenhaENovaVisao() {
   pedirSenha(abrirSeletorNovaVisao);
 }
+
+// ── Menu de configurações (engrenagem) ──
+function abrirMenuConfig() {
+  const m = document.getElementById('menu-config');
+  if (!m) return;
+  // Alterna; só revela as opções após validar senha
+  if (m.style.display === 'block') { m.style.display = 'none'; return; }
+  pedirSenha(() => { m.style.display = 'block'; });
+}
+function fecharMenuConfig() {
+  const m = document.getElementById('menu-config');
+  if (m) m.style.display = 'none';
+}
+function configNovaVisao() { fecharMenuConfig(); abrirSeletorNovaVisao(); }
+function configEditarRegioes() { fecharMenuConfig(); abrirSeletor(); }
+function configReordenar() { fecharMenuConfig(); ativarReordenar(!modoReordenar); }
+
+// Fechar menu config ao clicar fora
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('menu-config');
+  const btn = document.getElementById('btn-config');
+  if (menu && menu.style.display === 'block' && !menu.contains(e.target) && e.target !== btn) {
+    menu.style.display = 'none';
+  }
+});
 
 function garantirBotaoSalvarInj() {
   if (document.getElementById('seletor-btn-salvar-inj')) {
@@ -2466,7 +2774,20 @@ function abrirSeletor() {
     return;
   }
   selChaveAtiva = travadoTerr;
-  document.getElementById('seletor-visao-nome').textContent = '— ' + VISAO_NOME[selChaveAtiva];
+  const ehCustomInicial = selChaveAtiva.startsWith('custom_');
+  const spanNome = document.getElementById('seletor-visao-nome');
+  const inpNome = document.getElementById('seletor-visao-nome-edit');
+  if (ehCustomInicial) {
+    // Visão custom: nome editável
+    spanNome.style.display = 'none';
+    inpNome.style.display = '';
+    inpNome.value = VISAO_NOME[selChaveAtiva] || '';
+  } else {
+    // Visão fixa: nome só leitura
+    spanNome.style.display = '';
+    spanNome.textContent = '— ' + VISAO_NOME[selChaveAtiva];
+    inpNome.style.display = 'none';
+  }
 
   // Construir SVG do seletor a partir do SVG principal
   seletorConstruirSVG();
@@ -2907,6 +3228,14 @@ function seletorSalvarEAplicar() {
       selModoEd = null;
     }
     if (window._customVisoes && window._customVisoes[selChaveAtiva]) {
+      // Aplicar novo nome da aba (se foi editado)
+      const novoNome = document.getElementById('seletor-visao-nome-edit').value.trim();
+      if (novoNome) {
+        window._customVisoes[selChaveAtiva].nome = novoNome;
+        VISAO_NOME[selChaveAtiva] = novoNome;
+        const cardLbl = document.querySelector(`.card[data-chave="${selChaveAtiva}"] .card-label`);
+        if (cardLbl) cardLbl.textContent = novoNome;
+      }
       window._customVisoes[selChaveAtiva].regioes = selRegs.map(r => ({
         nome: r.nome, cor: r.cor, cids: new Set(r.cids), pop: r.pop, meta: r.meta||0, tipo: r.tipo||'vendedor'
       }));
@@ -2938,6 +3267,14 @@ function seletorSalvarEAplicar() {
   // Aplicar ao mapa e fechar
   if (!selRegs.length) { fecharSeletor(); return; }
   seletorAplicarAoMapa();
+  // Manter a visão editada ativa e destacada no mapa principal
+  travadoTerr = selChaveAtiva;
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('ativo'));
+  const cardAtivo = document.querySelector(`.card[data-chave="${selChaveAtiva}"]`);
+  if (cardAtivo) cardAtivo.classList.add('ativo');
+  document.getElementById('btn-print').style.display = 'flex';
+  document.getElementById('btn-excel').style.display = 'flex';
+  destacarPorChave(selChaveAtiva);
   fecharSeletor();
 }
 
@@ -2981,7 +3318,7 @@ function seletorCriarNovaVisao() {
   fecharSeletor();
 }
 
-function criarCardNovaVisao(chave, nome, cor, pop, numCids) {
+function criarCardNovaVisao(chave, nome, cor, pop, numCids, posicionarAposChave) {
   const grid = document.querySelector('.cards-grid');
   if (!grid) return;
 
@@ -3012,6 +3349,7 @@ function criarCardNovaVisao(chave, nome, cor, pop, numCids) {
     <div class="card-sub">hab · ${numCids} cidades</div>`;
 
   card.addEventListener('click', () => {
+    if (modoReordenar) return; // em modo reordenar, clique não ativa visão
     if (travadoTerr === chave) {
       // Toggle off
       travadoTerr = null;
@@ -3029,10 +3367,11 @@ function criarCardNovaVisao(chave, nome, cor, pop, numCids) {
     }
   });
   // Hover preview (igual aos cards originais)
-  card.addEventListener('mouseenter', () => { if(travadoTerr) return; destacarPorChave(chave); });
-  card.addEventListener('mouseleave', () => { if(travadoTerr) return; resetCores(); });
+  card.addEventListener('mouseenter', () => { if(modoReordenar || travadoTerr) return; destacarPorChave(chave); });
+  card.addEventListener('mouseleave', () => { if(modoReordenar || travadoTerr) return; resetCores(); });
   // Duplo clique → excluir visão custom (pede senha)
   card.addEventListener('dblclick', () => {
+    if (modoReordenar) return;
     pedirSenha(() => {
       if (!confirm(`Excluir a visão "${nome}"? Esta ação não pode ser desfeita.`)) return;
       delete window._customVisoes[chave];
@@ -3048,7 +3387,19 @@ function criarCardNovaVisao(chave, nome, cor, pop, numCids) {
       card.remove();
     });
   });
-  grid.appendChild(card);
+  // Inserir na posição certa (após uma chave específica) ou no fim
+  if (posicionarAposChave) {
+    const ref = grid.querySelector(`.card[data-chave="${posicionarAposChave}"]`);
+    if (ref && ref.nextSibling) {
+      grid.insertBefore(card, ref.nextSibling);
+    } else if (ref) {
+      grid.appendChild(card);
+    } else {
+      grid.appendChild(card);
+    }
+  } else {
+    grid.appendChild(card);
+  }
 }
 
 function seletorConfirmar() {
@@ -3089,31 +3440,35 @@ function seletorAplicarAoMapa() {
     todasCids.forEach(c => cidadesFleischmannRabele.add(c));
 
   } else if (chave === 'coferpan') {
-    // Para coferpan: remapear fill das cidades no SVG
-    // Cidades na visão = #3498DB ou #9E9E9E exceto excluídas
-    // Ao editar coferpan, tratamos como: adicionar/remover de excluídas
+    // Coferpan base = fill #3498DB ou #9E9E9E. Suporta excluir E adicionar qualquer cidade.
     const todasCids = new Set();
     selRegs.forEach(r => r.cids.forEach(c => todasCids.add(c)));
-    // As cidades do coferpan são as de fill #3498DB ou #9E9E9E
-    // Excluídas = as que estavam no conjunto original mas saíram
     const originais = new Set(allMuns
       .filter(el => el.getAttribute('fill')==='#3498DB' || el.getAttribute('fill')==='#9E9E9E')
       .map(el => el.getAttribute('data-cidade')));
+    // Excluídas = originais que saíram
     coferpanExcluir.clear();
     originais.forEach(c => { if (!todasCids.has(c)) coferpanExcluir.add(c); });
+    // Adicionadas = cidades fora das originais que entraram
+    if (!window._overrideCoferpanAdd) window._overrideCoferpanAdd = new Set();
+    window._overrideCoferpanAdd.clear();
+    todasCids.forEach(c => { if (!originais.has(c)) window._overrideCoferpanAdd.add(c); });
 
   } else if (chave === 'coferpan-apos') {
-    // Usar set de override — não toca em setAttribute
+    // Suporta remover (override) E adicionar qualquer cidade (overrideAdd)
     const todasCids = new Set();
     selRegs.forEach(r => r.cids.forEach(c => todasCids.add(c)));
+    const originaisApos = new Set(allMuns
+      .filter(el => el.getAttribute('fill')==='#9E9E9E')
+      .map(el => el.getAttribute('data-cidade')));
+    // Removidas = originais cinza que saíram
     if (!window._overrideApos) window._overrideApos = new Set();
     window._overrideApos.clear();
-    // Guardar quais cidades #9E9E9E foram removidas
-    allMuns.filter(el => el.getAttribute('fill')==='#9E9E9E')
-           .forEach(el => {
-             const c = el.getAttribute('data-cidade');
-             if (!todasCids.has(c)) window._overrideApos.add(c);
-           });
+    originaisApos.forEach(c => { if (!todasCids.has(c)) window._overrideApos.add(c); });
+    // Adicionadas = cidades fora das cinza que entraram
+    if (!window._overrideAposAdd) window._overrideAposAdd = new Set();
+    window._overrideAposAdd.clear();
+    todasCids.forEach(c => { if (!originaisApos.has(c)) window._overrideAposAdd.add(c); });
 
   } else if (chave === 'fermisul') {
     // Usar set de override — não toca em setAttribute
@@ -3147,6 +3502,9 @@ function seletorAplicarAoMapa() {
 
   // Reativar destaque da visão
   destacarPorChave(chave);
+
+  // Persistir edições das nativas (Supabase + localStorage)
+  salvarNativasSupabase();
 }
 
 function atualizarCards() {
@@ -3159,12 +3517,12 @@ function atualizarCards() {
     };
   };
   const vis = {
-    'coferpan': calcVis((f,c) => (f==='#3498DB'||f==='#9E9E9E')&&!coferpanExcluir.has(c)),
+    'coferpan': calcVis((f,c) => ((f==='#3498DB'||f==='#9E9E9E')&&!coferpanExcluir.has(c)) || (window._overrideCoferpanAdd&&window._overrideCoferpanAdd.has(c))),
     'fermisul': calcVis(f => f==='#85C1A0'),
     'rabele-fleisch-hoje': calcVis((f,c) => cidadesRabeleFleischHoje.has(c)),
     'rabele': calcVis(f => f==='#3498DB'),
     'fleisch-rabele': calcVis((f,c) => f==='#3498DB'||cidadesFleischmannRabele.has(c)),
-    'coferpan-apos': calcVis(f => f==='#9E9E9E')
+    'coferpan-apos': calcVis((f,c) => (f==='#9E9E9E' && !(window._overrideApos&&window._overrideApos.has(c))) || (window._overrideAposAdd&&window._overrideAposAdd.has(c)))
   };
   Object.entries(vis).forEach(([chave, {pop, cnt}]) => {
     const card = document.querySelector(`[data-chave="${chave}"]`);
