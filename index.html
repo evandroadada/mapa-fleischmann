@@ -48,9 +48,11 @@ body.dark {
 }
 
 html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:var(--bg);}
+body{display:flex;flex-direction:column;height:100dvh;}
 
 /* HEADER */
 header{
+  flex-shrink:0;
   background:var(--header-bg);
   padding:13px 24px 11px;
   box-shadow:0 4px 20px rgba(0,0,0,0.25);
@@ -147,7 +149,8 @@ header{
 /* MAPA */
 #mapa-wrapper{
   width:100%;
-  height:calc(100dvh - 148px);
+  flex:1 1 auto;
+  min-height:0;
   position:relative;
   background:var(--map-bg);
   overflow:hidden;
@@ -239,7 +242,6 @@ header{
   .card-value{font-size:1em;}
   .card-label{font-size:8px;}
   .card-sub{font-size:8px;}
-  #mapa-wrapper{height:calc(100dvh - 188px);}
   #legenda-territorios{display:none !important;}
 }
 
@@ -430,7 +432,7 @@ header{
   <div id="mapa-container"></div>
 </div>
 
-<footer style="position:fixed;bottom:0;left:0;right:0;background:rgba(13,27,42,0.85);backdrop-filter:blur(8px);border-top:1px solid rgba(52,152,219,0.15);padding:5px 20px;z-index:40;font-family:'Inter',sans-serif;font-size:11px;color:rgba(255,255,255,0.4);text-align:center;">
+<footer style="flex-shrink:0;background:rgba(13,27,42,0.85);backdrop-filter:blur(8px);border-top:1px solid rgba(52,152,219,0.15);padding:5px 20px;z-index:40;font-family:'Inter',sans-serif;font-size:11px;color:rgba(255,255,255,0.4);text-align:center;">
   © 2026 Rabele Alimentos. All rights reserved.
 </footer>
 
@@ -3124,24 +3126,15 @@ function seletorSetCor(c) {
 
 function seletorBuscar(q) {
   const qu = q.trim().toUpperCase();
+  seletorPaint();
+  if (!qu) return;
   Object.entries(selEls).forEach(([nome, el]) => {
-    if (qu && nome.toUpperCase().includes(qu)) {
+    if (!el) return;
+    if (nome.toUpperCase().includes(qu)) {
       el.style.stroke = '#ffd700';
-      el.style.strokeWidth = '1.8';
-    } else {
-      // será sobrescrito pelo paint, mas reset aqui
+      el.style.strokeWidth = '2';
     }
   });
-  if (qu) {
-    Object.entries(selEls).forEach(([nome, el]) => {
-      if (nome.toUpperCase().includes(qu)) {
-        el.style.stroke = '#ffd700';
-        el.style.strokeWidth = '2';
-      }
-    });
-  } else {
-    seletorPaint();
-  }
 }
 
 
