@@ -385,6 +385,7 @@ header{
         <button onclick="configNovaVisao()" style="width:100%;text-align:left;background:none;border:none;color:#e6edf3;padding:9px 12px;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;display:flex;align-items:center;gap:8px;transition:background .15s;" onmouseover="this.style.background='rgba(46,160,67,0.2)'" onmouseout="this.style.background='none'">＋ Nova Visão</button>
         <button onclick="configEditarRegioes()" style="width:100%;text-align:left;background:none;border:none;color:#e6edf3;padding:9px 12px;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;display:flex;align-items:center;gap:8px;transition:background .15s;" onmouseover="this.style.background='rgba(155,89,182,0.2)'" onmouseout="this.style.background='none'">✏️ Editar Regiões</button>
         <button onclick="configReordenar()" style="width:100%;text-align:left;background:none;border:none;color:#e6edf3;padding:9px 12px;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;display:flex;align-items:center;gap:8px;transition:background .15s;" onmouseover="this.style.background='rgba(210,153,34,0.2)'" onmouseout="this.style.background='none'">⇅ Reordenar Abas</button>
+        <button onclick="configClonarVisao()" style="width:100%;text-align:left;background:none;border:none;color:#e6edf3;padding:9px 12px;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;display:flex;align-items:center;gap:8px;transition:background .15s;" onmouseover="this.style.background='rgba(52,152,219,0.2)'" onmouseout="this.style.background='none'">📋 Clonar Visão</button>
       </div>
     </div>
     <button class="theme-btn" id="theme-toggle" onclick="toggleTheme()">🌙 Escuro</button>
@@ -2694,6 +2695,56 @@ function fecharMenuConfig() {
 function configNovaVisao() { fecharMenuConfig(); abrirSeletorNovaVisao(); }
 function configEditarRegioes() { fecharMenuConfig(); abrirSeletor(); }
 function configReordenar() { fecharMenuConfig(); ativarReordenar(!modoReordenar); }
+
+// Clona a visão ativa como uma nova visão custom (editável, reordenável, excluível)
+function configClonarVisao() {
+  fecharMenuConfig();
+  const origemChave = travadoTerr;
+  if (!origemChave) { alert('Clique num card de visão para ativá-la antes de clonar.'); return; }
+  if (!window._customVisoes) window._customVisoes = {};
+
+  const chaveNova = 'custom_' + Date.now();
+  const nomeNovo = VISAO_NOME[origemChave] + ' - clone';
+  const origemCustom = origemChave.startsWith('custom_') && window._customVisoes[origemChave];
+
+  let regioes;
+  if (origemCustom) {
+    // Cópia profunda de todas as regiões
+    regioes = origemCustom.regioes.map(r => ({
+      nome: r.nome, cor: r.cor, cids: new Set(r.cids), pop: r.pop,
+      meta: r.meta||0, tipo: r.tipo||'vendedor'
+    }));
+  } else {
+    // Nativa: coleta cidades visíveis (respeita overrides), mesmo padrão de seletorCarregarVisao()
+    destacarPorChave(origemChave);
+    const cids = new Set(
+      allMuns.filter(el => !el.classList.contains('mun-apagado'))
+             .map(el => el.getAttribute('data-cidade'))
+             .filter(Boolean)
+    );
+    const pop = [...cids].reduce((s,n) => s + (popCidades[n]||0), 0);
+    regioes = [{ nome: VISAO_NOME[origemChave], cor: VISAO_COR[origemChave], cids, pop, meta: 0, tipo: 'vendedor' }];
+  }
+
+  const clone = { nome: nomeNovo, regioes };
+  window._customVisoes[chaveNova] = clone;
+  VISAO_NOME[chaveNova] = nomeNovo;
+  VISAO_COR[chaveNova]  = regioes[0] ? regioes[0].cor : (VISAO_COR[origemChave] || '#3b82f6');
+
+  const todasCids = new Set();
+  regioes.forEach(r => r.cids.forEach(c => todasCids.add(c)));
+  const popTotal = [...todasCids].reduce((s,n) => s + (popCidades[n]||0), 0);
+
+  criarCardNovaVisao(chaveNova, nomeNovo, VISAO_COR[chaveNova], popTotal, todasCids.size, origemChave);
+  salvarOrdemCards();
+
+  salvarVisoesLS();
+  supabaseSalvarVisao(chaveNova, clone).then(ok => { if (!ok) console.warn('Clone não salvo no Supabase:', chaveNova); });
+
+  // Ativar o clone (mesma lógica de clique dos cards)
+  const cardNovo = document.querySelector(`.cards-grid .card[data-chave="${chaveNova}"]`);
+  if (cardNovo) cardNovo.click();
+}
 
 // Fechar menu config ao clicar fora
 document.addEventListener('click', (e) => {
