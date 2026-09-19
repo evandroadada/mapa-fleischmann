@@ -266,6 +266,16 @@ header{
   .mun:hover { filter: none !important; stroke-width: 0.5 !important; stroke: inherit !important; }
   body.print-legenda-curta #mapa-wrapper { bottom: var(--print-leg-h, 130px) !important; }
   body.print-legenda-curta #print-legenda .pl-totais { padding-top: 4px; }
+  /* Impressão sempre em fundo branco, independente do tema da tela */
+  body, body.dark {
+    --map-bg: #ffffff;
+    --mun-stroke: rgba(255,255,255,0.22);
+    --apagado: rgba(248,250,252,0.92);
+    --apagado-stroke: #e2e8f0;
+  }
+  html, body, #mapa-wrapper, #mapa-container, #mapa-container svg { background: #ffffff !important; }
+  #print-title { color: #14406b !important; }
+  #print-legenda, #print-legenda .pl-wrap { background: #ffffff !important; color: #1f2430; }
 }
 /* Estilos da legenda de impressão fora do @media print: #print-legenda fica oculto na tela, mas
    precisa das mesmas medidas para calcular a altura real antes de imprimir */
