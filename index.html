@@ -253,59 +253,68 @@ header{
   body { background: white !important; }
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   /* Quando há legenda custom, mapa reduz e legenda aparece abaixo */
-  body.print-com-legenda #mapa-wrapper { bottom: 290px !important; }
+  body.print-com-legenda #mapa-wrapper { bottom: var(--print-leg-h, 290px) !important; }
   body.print-com-legenda #print-legenda {
     display: block !important; position: fixed; bottom: 18px; left: 0; right: 0;
     z-index: 100000; background: #ffffff; padding-top: 6px;
   }
-  #print-legenda .pl-wrap {
-    max-width: 660px; margin: 0 auto; font-family: 'Inter', sans-serif;
-    background: #ffffff; border-radius: 8px;
-  }
-  #print-legenda .pl-table {
-    width: 100%; border-collapse: collapse; margin-bottom: 8px;
-  }
-  #print-legenda .pl-table thead th {
-    font-size: 8px; font-weight: 600; text-transform: uppercase;
-    letter-spacing: .6px; color: #9aa3ad; padding: 0 6px 4px; border-bottom: 1.5px solid #e8eaed;
-  }
-  #print-legenda .pl-table td {
-    padding: 3.5px 6px; border-bottom: 1px solid #f1f3f5; font-size: 10.5px; vertical-align: middle;
-  }
-  #print-legenda .pl-c-cor { width: 16px; }
-  #print-legenda .pl-dot {
-    display: inline-block; width: 9px; height: 9px; border-radius: 50%; vertical-align: middle;
-  }
-  #print-legenda .pl-c-nome { font-weight: 600; color: #1f2430; }
-  #print-legenda .pl-c-pop { text-align: right; color: #6b7280; font-variant-numeric: tabular-nums; }
-  #print-legenda .pl-c-meta { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
-  #print-legenda .pl-totais {
-    max-width: 660px; margin: 0 auto;
-  }
-  #print-legenda .pl-tr {
-    display: flex; justify-content: space-between; align-items: center;
-    font-size: 10px; padding: 2.5px 6px; color: #4b5563;
-  }
-  #print-legenda .pl-tr span:first-child { font-weight: 500; display: flex; align-items: center; }
-  #print-legenda .pl-bullet {
-    display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px;
-  }
-  #print-legenda .pl-tv { font-variant-numeric: tabular-nums; color: #374151; }
-  #print-legenda .pl-tv b { color: #1f2430; }
-  #print-legenda .pl-tr-geral {
-    border-top: 1.5px solid #e8eaed; margin-top: 3px; padding-top: 6px;
-    font-size: 12.5px; font-weight: 700; color: #14406b;
-  }
-  #print-legenda .pl-tr-geral .pl-tv, #print-legenda .pl-tr-geral .pl-tv b { color: #14406b; }
   /* Sintético: ocultar labels de vendedor no mapa e usar menos espaço */
   body.print-sintetico .vendedor-label { display: none !important; }
   /* Em visão custom (com labels de vendedor), esconder nomes das cidades de fundo */
   body.print-ocultar-cidades #labels { display: none !important; }
   /* Anular hover/destaque de cidade na impressão */
   .mun:hover { filter: none !important; stroke-width: 0.5 !important; stroke: inherit !important; }
-  body.print-legenda-curta #mapa-wrapper { bottom: 130px !important; }
+  body.print-legenda-curta #mapa-wrapper { bottom: var(--print-leg-h, 130px) !important; }
   body.print-legenda-curta #print-legenda .pl-totais { padding-top: 4px; }
 }
+/* Estilos da legenda de impressão fora do @media print: #print-legenda fica oculto na tela, mas
+   precisa das mesmas medidas para calcular a altura real antes de imprimir */
+#print-legenda .pl-wrap {
+  max-width: 660px; margin: 0 auto; font-family: 'Inter', sans-serif;
+  background: #ffffff; border-radius: 8px;
+}
+#print-legenda .pl-table {
+  width: 100%; border-collapse: collapse; margin-bottom: 8px;
+}
+#print-legenda .pl-table thead th {
+  font-size: 8px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .6px; color: #9aa3ad; padding: 0 6px 4px; border-bottom: 1.5px solid #e8eaed;
+}
+#print-legenda .pl-table td {
+  padding: 3.5px 6px; border-bottom: 1px solid #f1f3f5; font-size: 10.5px; vertical-align: middle;
+}
+#print-legenda .pl-c-cor { width: 16px; }
+#print-legenda .pl-dot {
+  display: inline-block; width: 9px; height: 9px; border-radius: 50%; vertical-align: middle;
+}
+#print-legenda .pl-c-nome { font-weight: 600; color: #1f2430; }
+#print-legenda .pl-c-pop { text-align: right; color: #6b7280; font-variant-numeric: tabular-nums; }
+#print-legenda .pl-c-meta { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+#print-legenda .pl-totais {
+  max-width: 660px; margin: 0 auto;
+}
+#print-legenda .pl-tr {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 10px; padding: 2.5px 6px; color: #4b5563;
+}
+#print-legenda .pl-tr span:first-child { font-weight: 500; display: flex; align-items: center; }
+#print-legenda .pl-bullet {
+  display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px;
+}
+#print-legenda .pl-tv { font-variant-numeric: tabular-nums; color: #374151; }
+#print-legenda .pl-tv b { color: #1f2430; }
+#print-legenda .pl-tr-geral {
+  border-top: 1.5px solid #e8eaed; margin-top: 3px; padding-top: 6px;
+  font-size: 12.5px; font-weight: 700; color: #14406b;
+}
+#print-legenda .pl-tr-geral .pl-tv, #print-legenda .pl-tr-geral .pl-tv b { color: #14406b; }
+#print-legenda .pl-wrap.pl-multi { max-width: 1040px; }
+#print-legenda .pl-cols { display: flex; gap: 18px; align-items: flex-start; }
+#print-legenda .pl-cols .pl-table { flex: 1; min-width: 0; }
+#print-legenda .pl-cols .pl-table td { font-size: 9.5px; padding: 3px 5px; }
+#print-legenda .pl-cols .pl-c-pop, #print-legenda .pl-cols .pl-c-meta { white-space: nowrap; }
+#print-legenda .pl-multi .pl-totais { max-width: 660px; }
+@page { size: A4 landscape; margin: 8mm; }
 
 /* PAINEL SELETOR */
 #seletor-overlay{display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.62);backdrop-filter:blur(3px);}
@@ -902,8 +911,8 @@ const svgTerritorios = `<svg id="mapa-parana" viewBox="0 0 1000 636" xmlns="http
   #print-title { display: block !important; position: fixed; top: 14px; left: 0; right: 0; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 21px; font-weight: 700; letter-spacing: .5px; color: #14406b; z-index: 100000; }
   #print-footer { display: block !important; position: fixed; bottom: 7px; left: 0; right: 0; text-align: center; font-size: 8.5px; color: #c0c4ca; z-index: 100000; font-family: 'Inter', sans-serif; }
   #mapa-wrapper { position: fixed !important; top: 42px !important; left: 0 !important; right: 0 !important; bottom: 25px !important; height: auto !important; }
-  body.print-com-legenda #mapa-wrapper { bottom: 290px !important; }
-  body.print-legenda-curta #mapa-wrapper { bottom: 130px !important; }
+  body.print-com-legenda #mapa-wrapper { bottom: var(--print-leg-h, 290px) !important; }
+  body.print-legenda-curta #mapa-wrapper { bottom: var(--print-leg-h, 130px) !important; }
   body.print-sintetico .vendedor-label { display: none !important; }
   body { background: white !important; }
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -1520,6 +1529,7 @@ function gerarLegendaPrint(modo) {
   modo = modo || 'analitico';
   const box = document.getElementById('print-legenda');
   document.body.classList.remove('print-com-legenda');
+  document.body.style.removeProperty('--print-leg-h');
   box.innerHTML = '';
 
   if (!travadoTerr) return;
@@ -1544,6 +1554,7 @@ function gerarLegendaPrint(modo) {
         </div>
       </div>`;
     document.body.classList.add('print-com-legenda', 'print-legenda-curta');
+    reservarEspacoLegendaPrint(130);
     return;
   }
 
@@ -1559,8 +1570,21 @@ function gerarLegendaPrint(modo) {
 
   // ── Tabela detalhada (só no analítico) ──
   let tabelaHtml = '';
+  let rows = [];
+  const montarTabela = linhas => `
+      <table class="pl-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th style="text-align:left;">Região / Vendedor</th>
+            <th style="text-align:right;">População</th>
+            <th style="text-align:right;">Meta / Potencial</th>
+          </tr>
+        </thead>
+        <tbody>${linhas.join('')}</tbody>
+      </table>`;
   if (modo === 'analitico') {
-    const rows = regioes.map(r => {
+    rows = regioes.map(r => {
       const pop = [...r.cids].reduce((s,c) => s + (popCidades[c]||0), 0);
       const ehNaoAtend = r.tipo === 'naoatendida';
       const metaCor = ehNaoAtend ? '#b8860b' : '#1a7431';
@@ -1571,19 +1595,8 @@ function gerarLegendaPrint(modo) {
           <td class="pl-c-pop">${pop.toLocaleString('pt-BR')} hab</td>
           <td class="pl-c-meta" style="color:${metaCor};">${r.meta ? seletorMoedaStr(r.meta) : '—'}</td>
         </tr>`;
-    }).join('');
-    tabelaHtml = `
-      <table class="pl-table">
-        <thead>
-          <tr>
-            <th></th>
-            <th style="text-align:left;">Região / Vendedor</th>
-            <th style="text-align:right;">População</th>
-            <th style="text-align:right;">Meta / Potencial</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>`;
+    });
+    tabelaHtml = montarTabela(rows);
   }
 
   // ── Totais (sempre) ──
@@ -1619,6 +1632,41 @@ function gerarLegendaPrint(modo) {
   // Sintético usa menos espaço (só totais)
   if (modo === 'sintetico') document.body.classList.add('print-legenda-curta');
   else document.body.classList.remove('print-legenda-curta');
+
+  // Se a tabela numa coluna não deixa espaço mínimo para o mapa na página, divide em colunas
+  if (rows.length && medirLegendaPrint() > PRINT_LEGENDA_MAX_H) {
+    const nCols = rows.length > 12 ? 3 : 2;
+    const porCol = Math.ceil(rows.length / nCols);
+    const tabelas = [];
+    for (let i = 0; i < rows.length; i += porCol) tabelas.push(montarTabela(rows.slice(i, i + porCol)));
+    const wrap = box.querySelector('.pl-wrap');
+    wrap.classList.add('pl-multi');
+    wrap.querySelector('.pl-table').outerHTML = `<div class="pl-cols">${tabelas.join('')}</div>`;
+  }
+  reservarEspacoLegendaPrint(modo === 'sintetico' ? 130 : 290);
+}
+
+// ── Espaço da legenda na impressão ──
+// Página A4 paisagem (@page margin 8mm) ≈ 1062 × 733 px. O mapa começa em 42px (título) e precisa de
+// pelo menos PRINT_MAPA_MIN_H; o que sobrar é o máximo da legenda antes de ela ir para colunas.
+const PRINT_PAGINA_W = 1062, PRINT_PAGINA_H = 733, PRINT_TOPO_MAPA = 42, PRINT_MAPA_MIN_H = 360;
+const PRINT_LEGENDA_BASE = 18;   // bottom do #print-legenda no @media print
+const PRINT_LEGENDA_MAX_H = PRINT_PAGINA_H - PRINT_TOPO_MAPA - PRINT_MAPA_MIN_H - PRINT_LEGENDA_BASE;
+
+// Altura real da legenda com a largura da página (o box fica oculto na tela; mede fora da viewport)
+function medirLegendaPrint() {
+  const box = document.getElementById('print-legenda');
+  const estilo = box.getAttribute('style');
+  box.style.cssText = `display:block;position:fixed;left:-99999px;top:0;width:${PRINT_PAGINA_W}px;padding-top:6px;visibility:hidden;`;
+  const h = box.offsetHeight;
+  box.setAttribute('style', estilo);
+  return h;
+}
+
+// Reserva embaixo do mapa a altura real da legenda (nunca menos que o mínimo do layout original)
+function reservarEspacoLegendaPrint(minimo) {
+  const h = medirLegendaPrint() + PRINT_LEGENDA_BASE + 8;
+  document.body.style.setProperty('--print-leg-h', Math.max(minimo, h) + 'px');
 }
 
 function exportarExcelCustom() {
