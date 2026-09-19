@@ -136,7 +136,7 @@ header{
   font-family:'Barlow Condensed',sans-serif;
   font-weight:700;
   font-size:1.25em;
-  color:var(--accent);
+  color:var(--accent-num, var(--accent));
   letter-spacing:.3px;
 }
 .card-sub{
@@ -1776,6 +1776,7 @@ window.addEventListener('load', () => {
 
   allMuns = Array.from(document.querySelectorAll('#mapa-container .mun'));
   gerarLabelsCidadesGrandes();
+  document.querySelectorAll('.cards-grid .card').forEach(ajustarContrasteCard);
 
   // Aplicar overrides das nativas do localStorage IMEDIATAMENTE (síncrono),
   // evitando o flash de branco antes do Supabase responder
@@ -1960,6 +1961,12 @@ function renderLabelsVendedor(regioes) {
 
   const NS = 'http://www.w3.org/2000/svg';
 
+  // Nomes de cidade (#labels) para evitar sobreposição com os labels de região
+  const textosCidades = [...svg.querySelectorAll('#labels text')];
+  const ancorasCidades = textosCidades.map(t => [parseFloat(t.getAttribute('x')), parseFloat(t.getAttribute('y'))]);
+  const caixasCidades = textosCidades.map(t => { try { return t.getBBox(); } catch(_) { return null; } })
+                                     .filter(b => b && b.width);
+
   regioes.forEach(reg => {
     if (!reg.cids || !reg.cids.size) return;
 
@@ -1980,18 +1987,22 @@ function renderLabelsVendedor(regioes) {
     const ly = pairsMaior.reduce((s,p) => s + p[1], 0) / pairsMaior.length;
 
     // ── Label de texto com brilho/contorno, sem caixa ──
-    const palavras = reg.nome.toUpperCase().split(' ');
+    // Nomes com "/" (ex "33 - GILMAR/ 12 - NELSON") quebram sempre na barra; cada parte quebra por largura
     const linhas = [];
-    let atual = '';
-    palavras.forEach(p => {
-      if ((atual + ' ' + p).trim().length <= 16) {
-        atual = (atual + ' ' + p).trim();
-      } else {
-        if (atual) linhas.push(atual);
-        atual = p;
-      }
+    const partes = reg.nome.toUpperCase().split('/').map(s => s.trim()).filter(Boolean);
+    partes.forEach((parte, pi) => {
+      const palavras = (parte + (pi < partes.length - 1 ? '/' : '')).split(/\s+/);
+      let atual = '';
+      palavras.forEach(p => {
+        if ((atual + ' ' + p).trim().length <= 16) {
+          atual = (atual + ' ' + p).trim();
+        } else {
+          if (atual) linhas.push(atual);
+          atual = p;
+        }
+      });
+      if (atual) linhas.push(atual);
     });
-    if (atual) linhas.push(atual);
     const nLinhas = linhas.length;
     const temMeta = !!reg.meta;
     const ehNaoAtend = reg.tipo === 'naoatendida';
@@ -2029,10 +2040,10 @@ function renderLabelsVendedor(regioes) {
     tNome.setAttribute('font-family', 'Barlow Condensed, Arial, sans-serif');
     tNome.setAttribute('fill', corTexto);
     tNome.setAttribute('stroke', '#ffffff');
-    tNome.setAttribute('stroke-width', '1.7');
+    tNome.setAttribute('stroke-width', '1.2');
     tNome.setAttribute('paint-order', 'stroke');
     tNome.setAttribute('stroke-linejoin', 'round');
-    tNome.setAttribute('letter-spacing', '0.2');
+    tNome.setAttribute('letter-spacing', '0.35');
     linhas.forEach((ln, idx) => {
       const tspan = document.createElementNS(NS, 'tspan');
       tspan.setAttribute('x', lx);
@@ -2055,7 +2066,7 @@ function renderLabelsVendedor(regioes) {
       tMeta.setAttribute('font-family', 'Barlow Condensed, Arial, sans-serif');
       tMeta.setAttribute('fill', ehNaoAtend ? '#9a6f00' : '#136130');
       tMeta.setAttribute('stroke', '#ffffff');
-      tMeta.setAttribute('stroke-width', '1.4');
+      tMeta.setAttribute('stroke-width', '1.0');
       tMeta.setAttribute('paint-order', 'stroke');
       tMeta.setAttribute('stroke-linejoin', 'round');
       tMeta.textContent = seletorMoedaStr(reg.meta);
@@ -2083,6 +2094,28 @@ function renderLabelsVendedor(regioes) {
     });
 
     svg.appendChild(g);
+
+    // Não cobrir o nome da cidade polo: se houver label de cidade a < 10 unidades (ou sobreposto),
+    // desce o label de região para baixo do nome (ly + 9; se ainda colidir, ly + 16).
+    // Se nenhum resolver (desceu em cima de outra cidade), tenta subir e fica com o de menos colisões.
+    const colisoesCidade = () => {
+      let b; try { b = g.getBBox(); } catch(_) { return 0; }
+      return caixasCidades.filter(c => b.x < c.x + c.width && c.x < b.x + b.width && b.y < c.y + c.height && c.y < b.y + b.height).length;
+    };
+    const perto = ancorasCidades.some(([x, y]) => Math.hypot(x - lx, y - ly) < 10);
+    if (perto || colisoesCidade()) {
+      const textos = [...g.querySelectorAll('text')];
+      const baseY = textos.map(t => parseFloat(t.getAttribute('y')));
+      const mover = dy => textos.forEach((t, i) => t.setAttribute('y', baseY[i] + dy));
+      let melhor = null;
+      for (const dy of [9, 16, -9, -16]) {
+        mover(dy);
+        const n = colisoesCidade();
+        if (!melhor || n < melhor.n) melhor = { dy, n };
+        if (n === 0) break;
+      }
+      mover(melhor.dy);
+    }
   });
 }
 
@@ -2255,7 +2288,8 @@ function abrirModalRegiaoCustom(chave, cidade) {
 // ═══════════════════════════════════════════════════
 // SELETOR DE REGIÕES — integrado ao mapa Fleischmann
 // ═══════════════════════════════════════════════════
-const SEL_PALETTE = ["#3b82f6","#22c55e","#f59e0b","#ef4444","#8b5cf6","#06b6d4","#f97316","#ec4899","#14b8a6","#a3e635"];
+// Paleta harmônica: luminância média (texto branco e nomes #222 ≥ 3:1), ΔE ≥ 31 entre si e do azul Rabele
+const SEL_PALETTE = ["#2563eb","#0d9488","#b7791f","#d93636","#a24bd1","#3f9d4a","#e8650c","#d6337f","#8a8d1d","#64748b"];
 const SEL_NS = 'http://www.w3.org/2000/svg';
 
 let selRegs = [];   // [{nome, cor, cids: Set, pop, meta, tipo}]
@@ -3464,6 +3498,30 @@ function seletorCriarNovaVisao() {
   fecharSeletor();
 }
 
+// Contraste do número do card: o header é escuro nos dois temas. Pior caso = stop mais claro do
+// gradiente (#0f3460) + 12% de branco (card ativo). Se a cor da visão ficar < 4.5:1, clareia só o número.
+const CARD_BG_PIOR = [0x0f + (255 - 0x0f) * 0.12, 0x34 + (255 - 0x34) * 0.12, 0x60 + (255 - 0x60) * 0.12];
+function luminanciaRGB(rgb) {
+  const c = rgb.map(v => v / 255).map(v => v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+}
+function contrasteRGB(a, b) {
+  const x = luminanciaRGB(a), y = luminanciaRGB(b);
+  return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+}
+function ajustarContrasteCard(card) {
+  const hex = (card.style.getPropertyValue('--accent') || '').trim();
+  if (!/^#[0-9a-f]{6}$/i.test(hex)) return;
+  const rgb = [1, 3, 5].map(i => parseInt(hex.substr(i, 2), 16));
+  if (contrasteRGB(rgb, CARD_BG_PIOR) >= 4.5) { card.style.removeProperty('--accent-num'); return; }
+  let t = 0, cor = rgb;
+  while (t < 1 && contrasteRGB(cor, CARD_BG_PIOR) < 4.5) {
+    t += 0.05;
+    cor = rgb.map(v => Math.round(v + (255 - v) * t));
+  }
+  card.style.setProperty('--accent-num', `rgb(${cor.join(',')})`);
+}
+
 function criarCardNovaVisao(chave, nome, cor, pop, numCids, posicionarAposChave) {
   const grid = document.querySelector('.cards-grid');
   if (!grid) return;
@@ -3489,6 +3547,7 @@ function criarCardNovaVisao(chave, nome, cor, pop, numCids, posicionarAposChave)
   card.className = 'card';
   card.setAttribute('data-chave', chave);
   card.style.setProperty('--accent', cor);
+  ajustarContrasteCard(card);
   card.innerHTML = `
     <div class="card-label">${nome}</div>
     <div class="card-value">${pop.toLocaleString('pt-BR')}</div>
