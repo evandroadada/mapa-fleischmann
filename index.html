@@ -3499,7 +3499,10 @@ function seletorCriarNovaVisao() {
 }
 
 // Contraste do número do card: o header é escuro nos dois temas. Pior caso = stop mais claro do
-// gradiente (#0f3460) + 12% de branco (card ativo). Se a cor da visão ficar < 4.5:1, clareia só o número.
+// gradiente (#0f3460) + 12% de branco (card ativo). Clareia só o número, em HSL (mantém matiz e
+// saturação → a cor não vira pastel): alvo 4.0:1, teto de +15 de luminosidade. Se o teto não bastar,
+// passa dele só até 3.0:1 (AA para texto grande — o número é 20px bold).
+const CARD_CONTRASTE_ALVO = 4.0, CARD_CONTRASTE_MIN = 3.0, CARD_CLAREAR_MAX = 15;
 const CARD_BG_PIOR = [0x0f + (255 - 0x0f) * 0.12, 0x34 + (255 - 0x34) * 0.12, 0x60 + (255 - 0x60) * 0.12];
 function luminanciaRGB(rgb) {
   const c = rgb.map(v => v / 255).map(v => v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
@@ -3513,13 +3516,30 @@ function ajustarContrasteCard(card) {
   const hex = (card.style.getPropertyValue('--accent') || '').trim();
   if (!/^#[0-9a-f]{6}$/i.test(hex)) return;
   const rgb = [1, 3, 5].map(i => parseInt(hex.substr(i, 2), 16));
-  if (contrasteRGB(rgb, CARD_BG_PIOR) >= 4.5) { card.style.removeProperty('--accent-num'); return; }
-  let t = 0, cor = rgb;
-  while (t < 1 && contrasteRGB(cor, CARD_BG_PIOR) < 4.5) {
-    t += 0.05;
-    cor = rgb.map(v => Math.round(v + (255 - v) * t));
-  }
+  if (contrasteRGB(rgb, CARD_BG_PIOR) >= CARD_CONTRASTE_ALVO) { card.style.removeProperty('--accent-num'); return; }
+  const [h, s, l] = rgbParaHsl(rgb);
+  let dl = 0, cor = rgb;
+  const clarear = () => { dl += 0.5; cor = hslParaRgb(h, s, Math.min(100, l + dl)); };
+  while (dl < CARD_CLAREAR_MAX && contrasteRGB(cor, CARD_BG_PIOR) < CARD_CONTRASTE_ALVO) clarear();
+  while (l + dl < 100 && contrasteRGB(cor, CARD_BG_PIOR) < CARD_CONTRASTE_MIN) clarear();
   card.style.setProperty('--accent-num', `rgb(${cor.join(',')})`);
+}
+function rgbParaHsl([r, g, b]) {
+  r /= 255; g /= 255; b /= 255;
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn;
+  let h = 0, s = 0;
+  if (d) {
+    s = d / (1 - Math.abs(2 * l - 1));
+    h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    h *= 60; if (h < 0) h += 360;
+  }
+  return [h, s * 100, l * 100];
+}
+function hslParaRgb(h, s, l) {
+  s /= 100; l /= 100;
+  const c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2;
+  const [r, g, b] = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
+  return [r, g, b].map(v => Math.round((v + m) * 255));
 }
 
 function criarCardNovaVisao(chave, nome, cor, pop, numCids, posicionarAposChave) {
