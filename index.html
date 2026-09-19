@@ -1382,6 +1382,83 @@ let travadoTerr = null;
 const tip = document.getElementById('mapa-tooltip');
 let allMuns = [];
 
+// ── Labels dinâmicos: toda cidade >= 50k hab que ainda não tem label estático em #labels ──
+const LABEL_POP_MIN = 50000;
+function gerarLabelsCidadesGrandes() {
+  const gLabels = document.querySelector('#mapa-container #labels');
+  if (!gLabels) return;
+  const NS = 'http://www.w3.org/2000/svg';
+  const existentes = [...gLabels.querySelectorAll('text')];
+  const jaTem = new Set(existentes.map(t => t.textContent.trim()));
+
+  const areaPoly = pts => {
+    let a = 0;
+    for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) a += (pts[j].x + pts[i].x) * (pts[j].y - pts[i].y);
+    return Math.abs(a / 2);
+  };
+  const pontos = el => [...el.points].map(p => ({ x: p.x, y: p.y }));
+  const dentro = (el, x, y) => {
+    try { const p = el.ownerSVGElement.createSVGPoint(); p.x = x; p.y = y; return el.isPointInFill(p); }
+    catch(_) { return true; }
+  };
+  const colide = (a, b) => a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+
+  const bboxes = existentes.map(t => { try { return t.getBBox(); } catch(_) { return null; } }).filter(Boolean);
+
+  Object.entries(popCidades)
+    .filter(([nome, pop]) => pop >= LABEL_POP_MIN && !jaTem.has(nome))
+    .sort((a, b) => b[1] - a[1])
+    .forEach(([nome, pop]) => {
+      const polys = allMuns.filter(el => el.getAttribute('data-cidade') === nome && el.points);
+      if (!polys.length) return;
+      // Maior polígono (shoelace)
+      let maior = polys[0], maiorA = -1;
+      polys.forEach(el => { const a = areaPoly(pontos(el)); if (a > maiorA) { maiorA = a; maior = el; } });
+
+      // Centroide: média dos pontos se cair dentro do polígono, senão centro do bounding box
+      const pts = pontos(maior);
+      const mx = pts.reduce((s, p) => s + p.x, 0) / pts.length;
+      const my = pts.reduce((s, p) => s + p.y, 0) / pts.length;
+      const bb = maior.getBBox();
+      const cx = bb.x + bb.width / 2, cy = bb.y + bb.height / 2;
+      let [x, y] = dentro(maior, mx, my) || !dentro(maior, cx, cy) ? [mx, my] : [cx, cy];
+
+      const grande = pop >= 200000;
+      const g = document.createElementNS(NS, 'g');
+      g.setAttribute('pointer-events', 'none');
+      const t = document.createElementNS(NS, 'text');
+      t.setAttribute('x', x.toFixed(1));
+      t.setAttribute('y', y.toFixed(1));
+      t.setAttribute('text-anchor', 'middle');
+      t.setAttribute('font-family', 'Arial,sans-serif');
+      t.setAttribute('font-size', grande ? '9' : '7');
+      t.setAttribute('font-weight', grande ? '700' : '500');
+      t.setAttribute('fill', '#222');
+      t.setAttribute('style', 'text-shadow:0 0 3px rgba(255,255,255,0.95),0 0 3px rgba(255,255,255,0.95);');
+      t.setAttribute('data-label-dinamico', '1');
+      t.textContent = nome;
+      g.appendChild(t);
+      gLabels.appendChild(g);
+
+      // Anti-sobreposição simples: tenta deslocar ±4, ±8, ±12; se ainda colidir e <100k, reduz fonte para 6
+      let box; try { box = t.getBBox(); } catch(_) { return; }
+      if (box.width && bboxes.some(b => colide(box, b))) {
+        let resolvido = false;
+        for (const dy of [4, -4, 8, -8, 12, -12]) {
+          t.setAttribute('y', (y + dy).toFixed(1));
+          box = t.getBBox();
+          if (!bboxes.some(b => colide(box, b))) { resolvido = true; break; }
+        }
+        if (!resolvido) {
+          t.setAttribute('y', y.toFixed(1));
+          if (pop < 100000) t.setAttribute('font-size', '6');
+          box = t.getBBox();
+        }
+      }
+      bboxes.push(box);
+    });
+}
+
 
 function abrirMenuImpressao() {
   // Sempre imprime no modo sintético (mapa limpo + totais)
@@ -1698,6 +1775,7 @@ window.addEventListener('load', () => {
   if(svg){ svg.style.width='100%'; svg.style.height='100%'; c.appendChild(svg); }
 
   allMuns = Array.from(document.querySelectorAll('#mapa-container .mun'));
+  gerarLabelsCidadesGrandes();
 
   // Aplicar overrides das nativas do localStorage IMEDIATAMENTE (síncrono),
   // evitando o flash de branco antes do Supabase responder
