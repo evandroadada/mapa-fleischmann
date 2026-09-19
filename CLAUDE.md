@@ -49,11 +49,10 @@
 - Nunca `setAttribute('fill')` em polígono — pintar só via `destacarPorChave` / `destacarCustom` (usam `style.fill`)
 - `fill` do polígono = cor base da nativa; predicados de `destacarPorChave` dependem dele
 - Cidades com apóstrofo (ex: PÉROLA D'OESTE) usam aspas duplas em strings JS
-- `coferpanExcluir` = PITANGA (fill azul `#3498DB`) e GUAMIRANGA (fill base `#85C1A0`): fora do Coferpan Total Hoje
+- PITANGA azul (`#3498DB`), GUAMIRANGA verde Fermisul (`#85C1A0`), ambas excluídas do Coferpan Total Hoje (`coferpanExcluir`) — não alterar
 - Layout: `body` flex column 100dvh, `#mapa-wrapper` `flex:1 1 auto; min-height:0` — nunca altura fixa
 - `destacarPorChave` remove todos os `.vendedor-label` antes de pintar (nativa não tem label de região)
-- `seletorBuscar`: chama `seletorPaint()` antes e destaca o match com stroke dourado
-  - ⚠ o match ainda **não** sobe no z-order (pendente)
+- `seletorBuscar`: chama `seletorPaint()` antes; match ganha stroke dourado e sobe no z-order (fim de `#sel-gp`, abaixo de `#sel-gl`)
 - Labels de cidade:
   - 54 fixos em `#labels` (26 são polos < 50k escolhidos à mão — não remover)
   - `gerarLabelsCidadesGrandes()` cria no load os ≥ 50k que faltam (marcados `data-label-dinamico`)

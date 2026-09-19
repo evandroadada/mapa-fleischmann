@@ -3353,6 +3353,9 @@ function seletorBuscar(q) {
     if (nome.toUpperCase().includes(qu)) {
       el.style.stroke = '#ffd700';
       el.style.strokeWidth = '2';
+      // Sobe o match para o topo do grupo de polígonos: o contorno dourado não fica escondido
+      // sob as vizinhas (labels ficam em #sel-gl, acima, e continuam visíveis)
+      el.parentNode.appendChild(el);
     }
   });
 }
