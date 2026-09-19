@@ -1494,13 +1494,10 @@ function imprimirMapa(modo) {
     document.body.classList.remove('print-sintetico');
   }
 
-  // Visão custom: ocultar nomes das cidades de fundo na impressão (evita brigar com nomes de vendedor)
-  const ehCustom = travadoTerr && travadoTerr.startsWith('custom_');
-  if (ehCustom) {
-    document.body.classList.add('print-ocultar-cidades');
-  } else {
-    document.body.classList.remove('print-ocultar-cidades');
-  }
+  // Nomes das cidades sempre aparecem na impressão: no sintético são a única referência (labels de
+  // vendedor ficam ocultos) e no analítico os labels de região já desviam dos nomes de cidade.
+  // (classe print-ocultar-cidades e seu CSS mantidos no arquivo, mas não são mais aplicados)
+  document.body.classList.remove('print-ocultar-cidades');
 
   // Gerar legenda conforme o modo
   gerarLegendaPrint(modo);
