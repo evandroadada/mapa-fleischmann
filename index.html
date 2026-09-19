@@ -1911,6 +1911,8 @@ function destacar(pred, corOverride) {
 }
 
 function destacarPorChave(chave) {
+  // Trocar de visão sempre limpa os labels de região da visão anterior (nativas não têm label de região)
+  document.querySelectorAll('.vendedor-label').forEach(e => e.remove());
   if (chave && chave.startsWith('custom_') && window._customVisoes && window._customVisoes[chave]) {
     destacarCustom(window._customVisoes[chave].regioes);
     return;
